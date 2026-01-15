@@ -1,0 +1,47 @@
+import { Prop, Schema } from '@nestjs/mongoose';
+
+export type ProductDocument = Product & Document;
+
+@Schema({ timestamps: true })
+export class Product {
+  @Prop({ required: true, type: String })
+  name: string;
+  @Prop({ required: true, type: String })
+  price: number;
+  @Prop({ required: true, type: String })
+  discount: number;
+  @Prop({ required: true, type: String })
+  description: string;
+  @Prop({ required: true, type: String })
+  image: string;
+  @Prop({ required: true, type: String })
+  category_id: string;
+  @Prop({ required: true, type: String })
+  total_star: number;
+  @Prop({
+    required: true,
+    type: {
+      star1: { type: Number, default: 0 },
+      star2: { type: Number, default: 0 },
+      star3: { type: Number, default: 0 },
+      star4: { type: Number, default: 0 },
+      star5: { type: Number, default: 0 },
+    },
+    default: {
+      star1: 0,
+      star2: 0,
+      star3: 0,
+      star4: 0,
+      star5: 0,
+    },
+  })
+  rates: {
+    star1: { type: number };
+    star2: { type: number };
+    star3: { type: number };
+    star4: { type: number };
+    star5: { type: number };
+  };
+  @Prop({ required: true, type: Boolean })
+  status: boolean;
+}
