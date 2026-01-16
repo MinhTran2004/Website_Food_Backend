@@ -1,4 +1,4 @@
-import { IBaseResponse, IToken } from "./commom"
+import { IBaseResponse, IToken } from "./api.model"
 
 export interface IResponseAuth extends IBaseResponse {
     data: IToken & {

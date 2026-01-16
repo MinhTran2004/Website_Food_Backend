@@ -23,7 +23,7 @@ async function bootstrap() {
         bearerFormat: 'JWT',
         in: 'header',
       },
-      'jwt-auth',
+      'access-token',
     )
     .build()
     ;

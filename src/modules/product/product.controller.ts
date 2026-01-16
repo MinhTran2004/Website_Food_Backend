@@ -1,15 +1,37 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { IFilterOptions } from 'src/commom/api.dto';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { ProductRequestDto } from './dto/request.dto';
 import { ProductService } from './product.service';
-import { ApiOperation } from '@nestjs/swagger';
-import { CreateProductRequestDto } from './dto/request.dto';
 
-@Controller()
+@ApiBearerAuth('access-token')
+@UseGuards(JwtAuthGuard)
+@Controller('product')
 export class ProductController {
   constructor(private readonly productService: ProductService) { }
 
-  @Post('product')
-  @ApiOperation({ summary: 'Create new Product' })
-  create(@Body() body: CreateProductRequestDto) {
+  @Post('')
+  @ApiOperation({ summary: 'Create new product' })
+  create(@Body() body: ProductRequestDto) {
     return this.productService.create(body)
   }
+
+  @Get('get-list-product')
+  getListProduct(@Query() options: IFilterOptions) {
+    return this.productService.getListProduct(options);
+  }
+
+  @Delete(':id')
+  @ApiOperation({ summary: 'Delete a product' })
+  delete(@Param('id') id: string) {
+    return this.productService.delete(id)
+  }
+
+  @Patch(':id')
+  @ApiOperation({ summary: 'Update a product' })
+  patch(@Param('id') id: string, @Body() body: ProductRequestDto) {
+    return this.productService.patch(id, body);
+  }
+
 }

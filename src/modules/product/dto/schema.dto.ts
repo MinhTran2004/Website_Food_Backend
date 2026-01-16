@@ -1,4 +1,4 @@
-import { Prop, Schema } from '@nestjs/mongoose';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 
 export type ProductDocument = Product & Document;
 
@@ -6,20 +6,28 @@ export type ProductDocument = Product & Document;
 export class Product {
   @Prop({ required: true, type: String })
   name: string;
+
   @Prop({ required: true, type: String })
   price: number;
+
   @Prop({ required: true, type: String })
   discount: number;
+
   @Prop({ required: true, type: String })
   description: string;
+
   @Prop({ required: true, type: String })
   image: string;
+
   @Prop({ required: true, type: String })
   category_id: string;
-  @Prop({ required: true, type: String })
+
+  @Prop({ required: true, type: String, default: 0 })
   total_star: number;
+
   @Prop({
     required: true,
+    _id: false,
     type: {
       star1: { type: Number, default: 0 },
       star2: { type: Number, default: 0 },
@@ -36,12 +44,15 @@ export class Product {
     },
   })
   rates: {
-    star1: { type: number };
-    star2: { type: number };
-    star3: { type: number };
-    star4: { type: number };
-    star5: { type: number };
+    star1: number;
+    star2: number;
+    star3: number;
+    star4: number;
+    star5: number;
   };
-  @Prop({ required: true, type: Boolean })
-  status: boolean;
+
+  @Prop({ required: true, type: Boolean, default: true })
+  isActive: boolean;
 }
+
+export const ProductSchema = SchemaFactory.createForClass(Product)

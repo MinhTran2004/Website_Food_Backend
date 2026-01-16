@@ -5,24 +5,25 @@ export interface IToken {
 
 export interface IBaseResponse {
     status: number,
-    messenger: string,
+    message: string,
 }
 
 export interface IPagination {
     page: number;
-    perPage: number;
+    pageSize: number;
     total: number;
+    totalPage: number;
     nextPage: boolean;
     previousPage: boolean;
 }
 
 export interface IResponse<T> extends IBaseResponse {
-    data: T
+    data: T | null
 }
 
 export interface IResponseListData<T> extends IBaseResponse {
     data: {
-        data: T[],
+        items: T[] | null,
         pagination: IPagination
     }
 }
