@@ -1,7 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsNumber, Max, Min } from 'class-validator';
+import { STAR } from 'src/model/product-rate.modal';
 
-export class CreateProductRateRequestDto {
+export class ProductRateRequestDto {
   @ApiProperty()
   @IsNotEmpty()
   readonly user_id: string;
@@ -10,18 +11,12 @@ export class CreateProductRateRequestDto {
   @IsNotEmpty()
   readonly product_id: string;
 
-  @ApiProperty({ example: 5, minimum: 1, maximum: 5 })
+  @ApiProperty({ example: 5, enum: STAR })
   @IsNotEmpty()
   @IsNumber()
-  @Min(1)
-  @Max(5)
-  readonly rate: number;
+  readonly rate: STAR;
 
   @ApiProperty()
   @IsNotEmpty()
   readonly comment: string;
-
-  @ApiProperty()
-  @IsNotEmpty()
-  readonly status: boolean;
 }

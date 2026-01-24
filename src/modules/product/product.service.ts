@@ -1,4 +1,4 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { IFilterOptions } from 'src/commom/api.dto';
@@ -25,7 +25,7 @@ export class ProductService {
     return HTTP_RESPONSE.CREATED('en', product)
   }
 
-  async getListProduct(options: IFilterOptions): Promise<IResponseListData<IProduct>> {
+  async getListProduct(options: IFilterOptions): Promise<IResponseListData<IProduct | null>> {
     const page = Number(options.page) || 1;
     const pageSize = Number(options.pageSize) || 20;
     const skip = (page - 1) * pageSize;
@@ -70,6 +70,14 @@ export class ProductService {
 
     const productUpdate = await this.productModel.findByIdAndUpdate(id, body, { new: true });
     return HTTP_RESPONSE.OK('en', productUpdate);
+  }
+
+  async findById(productId: string) {
+    return this.productModel.findById(productId);
+  }
+
+  async patchStarByKey() {
+
   }
 
 }

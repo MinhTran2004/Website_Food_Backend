@@ -1,12 +1,16 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { Types } from 'mongoose';
+import { STAR } from 'src/model/product-rate.modal';
 
-export type ProductRateDocument = ProductComment & Document;
+export type ProductRateDocument = ProductRate & Document;
 
 @Schema({ timestamps: true })
-export class ProductComment {
-  @Prop({ required: true, type: String })
-  user_id: string;
+export class ProductRate {
+  @Prop({
+    required: true, type: mongoose.Schema.Types.ObjectId,
+    ref: 'user'
+  })
+  user_id: Types.ObjectId;
 
   @Prop({
     required: true,
@@ -15,15 +19,14 @@ export class ProductComment {
   })
   product_id: Types.ObjectId;
 
-  @Prop({ required: true, type: Number, max: 5, min: 1 })
-  rate: number;
+  @Prop({ required: true, enum: STAR })
+  rate: STAR;
 
   @Prop({ required: true, type: String })
   comment: string;
 
   @Prop({ required: true, type: Boolean, default: false })
-  status: boolean;
+  isActive: boolean;
 }
 
-export const ProductCommentSchema =
-  SchemaFactory.createForClass(ProductComment);
+export const ProductRateSchema = SchemaFactory.createForClass(ProductRate);

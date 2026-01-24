@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsNotEmpty, MinLength } from 'class-validator';
-
+import { IsEmail, IsNotEmpty, IsString, MinLength } from 'class-validator';
+import { PROVIDER } from 'src/model/user.modal';
 export class RegisterRequestDto {
     @ApiProperty({ type: String })
     @IsNotEmpty()
@@ -15,6 +15,11 @@ export class RegisterRequestDto {
     @IsNotEmpty()
     @MinLength(6)
     password: string;
+
+    @ApiProperty({ example: 'NORMAL', enum: PROVIDER })
+    @IsNotEmpty()
+    @IsString()
+    provider: string;
 }
 
 export class LoginRequestDto {
@@ -26,4 +31,28 @@ export class LoginRequestDto {
     @ApiProperty({ example: '123456', type: String, minLength: 6 })
     @MinLength(6)
     password: string
+}
+
+export class LoginGoogleRequestDto {
+    @ApiProperty({ required: true, type: String })
+    @IsNotEmpty()
+    idToken: string;
+
+    @ApiProperty({ required: true, type: String })
+    @IsNotEmpty()
+    accessToken: string;
+
+    @ApiProperty({ required: true, enum: PROVIDER })
+    @IsNotEmpty()
+    provider: string
+}
+
+export class LoginFacebookRequestDto {
+    @ApiProperty({ required: true, type: String })
+    @IsNotEmpty()
+    accessToken: string;
+
+    @ApiProperty({ required: true, enum: PROVIDER })
+    @IsNotEmpty()
+    provider: string
 }
