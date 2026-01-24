@@ -25,5 +25,5 @@ export interface IResponseListData<T> extends IBaseResponse {
     data: {
         items: T[] | null,
         pagination: IPagination
-    }
+    } | null
 }

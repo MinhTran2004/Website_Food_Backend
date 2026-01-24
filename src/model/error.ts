@@ -1,9 +1,9 @@
 import { HttpException, HttpStatus } from '@nestjs/common';
 
 interface BaseErrorFormat {
-  errCode: string;
   statusCode: number;
   message: string;
+  data: null
 }
 export class BaseException extends HttpException {
   constructor(response: BaseErrorFormat, cause?: any) {
@@ -24,6 +24,7 @@ type keyErrors =
   | 'FORBIDDEN_VERIFIED'
   | 'UNAUTHORIZED'
   | 'INVALID_OTP'
+  | 'CONFLICT'
 
 
 type IErrors = {
@@ -32,53 +33,58 @@ type IErrors = {
 
 export const Errors: IErrors = {
   DEFAULT: () => ({
-    errCode: HttpStatus.INTERNAL_SERVER_ERROR.toString(),
     statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
     message: "Something went wrong",
+    data: null
   }),
   ITEM_NOT_FOUND: (data: string) => ({
-    errCode: HttpStatus.BAD_REQUEST.toString(),
     statusCode: HttpStatus.BAD_REQUEST,
     message: `${data} does not exists!`,
+    data: null
   }),
   BAD_REQUEST: (data?: string) => ({
-    errCode: HttpStatus.BAD_REQUEST.toString(),
     statusCode: HttpStatus.BAD_REQUEST,
     message: data || 'BAD_REQUEST',
+    data: null
   }),
   CONFIRM_PASSWORD_NOT_MATCH: () => ({
-    errCode: HttpStatus.BAD_REQUEST.toString(),
     statusCode: HttpStatus.BAD_REQUEST,
     message: `Confirm password does not match`,
+    data: null
   }),
   ITEM_EXISTED: (data: string) => ({
-    errCode: HttpStatus.BAD_REQUEST.toString(),
     statusCode: HttpStatus.BAD_REQUEST,
     message: `${data} has existed!`,
+    data: null
   }),
   WRONG_PASSWORD: () => ({
-    errCode: HttpStatus.BAD_REQUEST.toString(),
     statusCode: HttpStatus.BAD_REQUEST,
     message: 'Wrong password',
+    data: null
   }),
   UNAUTHORIZED: () => ({
-    errCode: HttpStatus.UNAUTHORIZED.toString(),
     statusCode: HttpStatus.UNAUTHORIZED,
     message: 'Unauthenticated',
+    data: null
   }),
   FORBIDDEN: (message?: string) => ({
-    errCode: HttpStatus.FORBIDDEN.toString(),
     statusCode: HttpStatus.FORBIDDEN,
     message: message || 'Forbidden resource',
+    data: null
   }),
   FORBIDDEN_VERIFIED: () => ({
-    errCode: HttpStatus.FORBIDDEN.toString(),
     statusCode: HttpStatus.FORBIDDEN,
     message: 'Your account is not verified.',
+    data: null
   }),
   INVALID_OTP: (data: string) => ({
-    errCode: HttpStatus.BAD_REQUEST.toString(),
     statusCode: HttpStatus.BAD_REQUEST,
     message: data || 'Invalid OTP',
+    data: null
   }),
+  CONFLICT: (message?: string) => ({
+    statusCode: HttpStatus.CONFLICT,
+    message: message || 'Conflict',
+    data: null
+  })
 };

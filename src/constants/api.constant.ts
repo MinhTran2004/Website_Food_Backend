@@ -73,60 +73,64 @@ const HTTP_MESSAGES = {
 };
 
 export const HTTP_RESPONSE = {
-    OK: (lang: Lang = "vi", data?: any) => ({
+    OK: (lang: Lang = "vi", data?: any, error?: string): IResponse<null> => ({
         status: HttpStatus.OK,
-        message: HTTP_MESSAGES[HttpStatus.OK][lang],
+        message: error ? error : HTTP_MESSAGES[HttpStatus.OK][lang],
         data: data ?? null,
     }),
 
-    CREATED: (lang: Lang = "vi", data?: any) => ({
+    CREATED: (lang: Lang = "vi", data?: any, error?: string): IResponse<null> => ({
         status: HttpStatus.CREATED,
-        message: HTTP_MESSAGES[HttpStatus.CREATED][lang],
-        data: data ?? null,
+        message: error ? error : HTTP_MESSAGES[HttpStatus.CREATED][lang],
+        data: data || null,
     }),
 
-    ACCEPTED: (lang: Lang = "vi", data?: any) => ({
+    ACCEPTED: (lang: Lang = "vi", data?: any, error?: string): IResponse<null> => ({
         status: HttpStatus.ACCEPTED,
-        message: HTTP_MESSAGES[HttpStatus.ACCEPTED][lang],
+        message: error ? error : HTTP_MESSAGES[HttpStatus.ACCEPTED][lang],
         data: data ?? null,
     }),
 
-    BAD_REQUEST: (lang: Lang = "vi", error?: any) => ({
+    BAD_REQUEST: (lang: Lang = "vi", error?: string) => ({
         status: HttpStatus.BAD_REQUEST,
-        message: HTTP_MESSAGES[HttpStatus.BAD_REQUEST][lang],
-        error: error ?? null,
-    }),
-
-    UNAUTHORIZED: (lang: Lang = "vi") => ({
-        status: HttpStatus.UNAUTHORIZED,
-        message: HTTP_MESSAGES[HttpStatus.UNAUTHORIZED][lang],
-    }),
-
-    FORBIDDEN: (lang: Lang = "vi") => ({
-        status: HttpStatus.FORBIDDEN,
-        message: HTTP_MESSAGES[HttpStatus.FORBIDDEN][lang],
-    }),
-
-    NOT_FOUND: (lang: Lang = "vi"): IResponse<null> => ({
-        status: HttpStatus.NOT_FOUND,
-        message: HTTP_MESSAGES[HttpStatus.NOT_FOUND][lang],
-        data: null
-    }),
-
-    CONFLICT: (lang: Lang = "vi"): IResponse<null> => ({
-        status: HttpStatus.CONFLICT,
-        message: HTTP_MESSAGES[HttpStatus.CONFLICT][lang],
+        message: error ? error : HTTP_MESSAGES[HttpStatus.BAD_REQUEST][lang],
         data: null,
     }),
 
-    INTERNAL_SERVER_ERROR: (lang: Lang = "vi") => ({
-        status: HttpStatus.INTERNAL_SERVER_ERROR,
-        message: HTTP_MESSAGES[HttpStatus.INTERNAL_SERVER_ERROR][lang],
+    UNAUTHORIZED: (lang: Lang = "vi", error?: string): IResponse<null> => ({
+        status: HttpStatus.UNAUTHORIZED,
+        message: error ? error : HTTP_MESSAGES[HttpStatus.UNAUTHORIZED][lang],
+        data: null,
     }),
 
-    BAD_GATEWAY: (lang: Lang = "vi") => ({
+    FORBIDDEN: (lang: Lang = "vi", error?: string): IResponse<null> => ({
+        status: HttpStatus.FORBIDDEN,
+        message: error ? error : HTTP_MESSAGES[HttpStatus.FORBIDDEN][lang],
+        data: null,
+    }),
+
+    NOT_FOUND: (lang: Lang = "vi", error?: string): IResponse<null> => ({
+        status: HttpStatus.NOT_FOUND,
+        message: error ? error : HTTP_MESSAGES[HttpStatus.NOT_FOUND][lang],
+        data: null
+    }),
+
+    CONFLICT: (lang: Lang = "vi", error?: string): IResponse<null> => ({
+        status: HttpStatus.CONFLICT,
+        message: error ? error : HTTP_MESSAGES[HttpStatus.CONFLICT][lang],
+        data: null,
+    }),
+
+    INTERNAL_SERVER_ERROR: (lang: Lang = "vi", error?: string): IResponse<null> => ({
+        status: HttpStatus.INTERNAL_SERVER_ERROR,
+        message: error ? error : HTTP_MESSAGES[HttpStatus.INTERNAL_SERVER_ERROR][lang],
+        data: null,
+    }),
+
+    BAD_GATEWAY: (lang: Lang = "vi", error?: string): IResponse<null> => ({
         status: HttpStatus.BAD_GATEWAY,
-        message: HTTP_MESSAGES[HttpStatus.BAD_GATEWAY][lang],
+        message: error ? error : HTTP_MESSAGES[HttpStatus.BAD_GATEWAY][lang],
+        data: null,
     }),
 };
 

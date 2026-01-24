@@ -19,6 +19,11 @@ import { ProductModule } from './modules/product/product.module';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         uri: configService.get<string>('MONGODB_CONFIG'),
+        retryAttempts: 5,
+        retryDelay: 3000,
+        ssl: true,
+        tls: true,
+        tlsAllowInvalidCertificates: true,
       }),
     }),
     ProductRateModule,
