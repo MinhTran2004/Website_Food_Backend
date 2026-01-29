@@ -17,6 +17,9 @@ export class Product {
   description: string;
 
   @Prop({ required: true, type: String })
+  description_detail: string;
+
+  @Prop({ required: true, type: String })
   image: string;
 
   @Prop({ required: true, type: String })
@@ -55,4 +58,4 @@ export class Product {
   isActive: boolean;
 }
 
-export const ProductSchema = SchemaFactory.createForClass(Product)
+export const ProductSchema = SchemaFactory.createForClass(Product);

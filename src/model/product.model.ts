@@ -3,6 +3,7 @@ export interface IProduct {
     price: number;
     discount: number;
     description: string;
+    description_detail: string;
     image: string;
     category_id: string;
     total_star: number;

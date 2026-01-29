@@ -9,12 +9,12 @@ import { ProductRateService } from './product-rate.service';
 @Module({
   imports: [
     MongooseModule.forFeature([
-      { name: ProductRate.name, schema: ProductRateSchema }
+      { name: ProductRate.name, schema: ProductRateSchema },
     ]),
     ProductModule,
-    UserModule
+    UserModule,
   ],
   providers: [ProductRateService],
-  controllers: [ProductRateController]
+  controllers: [ProductRateController],
 })
-export class ProductRateModule { }
+export class ProductRateModule {}

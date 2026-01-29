@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { IFilterOptions } from 'src/commom/api.dto';
@@ -7,6 +7,7 @@ import { IBaseResponse, IResponse, IResponseListData } from 'src/model/api.model
 import { IProduct } from 'src/model/product.model';
 import { ProductRequestDto } from './dto/request.dto';
 import { Product, ProductDocument } from './dto/schema.dto';
+import { Errors } from 'src/model/error';
 
 @Injectable()
 export class ProductService {
@@ -15,13 +16,17 @@ export class ProductService {
   ) { }
 
   async create(data: ProductRequestDto): Promise<IResponse<IProduct | null>> {
-    const nameExisted = await this.productModel.findOne({ name: data.name })
+    const { name, price, description, description_detail, image, discount, category_id } = data;
+
+    if (!name && !price && !description && !description_detail && !image && !discount && !category_id) throw new BadRequestException(Errors.BAD_REQUEST('Name, price, description, description_detail, image, discount, category_id is empty!'))
+
+    const nameExisted = await this.productModel.findOne({ name: name })
 
     if (nameExisted) {
       return HTTP_RESPONSE.CONFLICT('en');
     }
 
-    const product = await this.productModel.create(data)
+    const product = await this.productModel.create(data);
     return HTTP_RESPONSE.CREATED('en', product)
   }
 

@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { Body, Controller, Post } from '@nestjs/common';
 import { ProductRateService } from './product-rate.service';
 import { ApiOperation } from '@nestjs/swagger';

@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { Body, Controller, Post } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { LoginGoogleRequestDto, LoginRequestDto, RegisterRequestDto } from '../user/dto/request.dto';

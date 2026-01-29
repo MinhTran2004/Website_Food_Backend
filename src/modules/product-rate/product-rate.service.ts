@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -24,13 +25,13 @@ export class ProductRateService {
         const productExists = await this.productService.findById(product_id);
 
         if (!productExists) {
-            return HTTP_RESPONSE.NOT_FOUND('en', 'Product not found')
+            return HTTP_RESPONSE.NOT_FOUND('en', 'Product not found');
         }
 
         const userExists = await this.userService.findById(user_id);
 
         if (!userExists) {
-            return HTTP_RESPONSE.NOT_FOUND('en', 'User not found')
+            return HTTP_RESPONSE.NOT_FOUND('en', 'User not found');
         }
 
         if (!rate && !comment) {
