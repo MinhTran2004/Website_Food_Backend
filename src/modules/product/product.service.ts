@@ -1,13 +1,14 @@
+/* eslint-disable prettier/prettier */
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { IFilterOptions } from 'src/commom/api.dto';
 import { HTTP_RESPONSE } from 'src/constants/api.constant';
 import { IBaseResponse, IResponse, IResponseListData } from 'src/model/api.model';
+import { Errors } from 'src/model/error';
 import { IProduct } from 'src/model/product.model';
 import { ProductRequestDto } from './dto/request.dto';
 import { Product, ProductDocument } from './dto/schema.dto';
-import { Errors } from 'src/model/error';
 
 @Injectable()
 export class ProductService {
@@ -68,9 +69,9 @@ export class ProductService {
   }
 
   async patch(id: string, body: ProductRequestDto): Promise<IResponse<IProduct | null>> {
-    const productExists = await this.productModel.findById(id)
+    const productExists = await this.productModel.findById(id);
     if (!productExists) {
-      return HTTP_RESPONSE.NOT_FOUND('en')
+      return HTTP_RESPONSE.NOT_FOUND('en');
     }
 
     const productUpdate = await this.productModel.findByIdAndUpdate(id, body, { new: true });
@@ -80,9 +81,4 @@ export class ProductService {
   async findById(productId: string) {
     return this.productModel.findById(productId);
   }
-
-  async patchStarByKey() {
-
-  }
-
 }
