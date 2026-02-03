@@ -4,10 +4,11 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './modules/auth/auth.module';
-import { ProductRateModule } from './modules/product-rate/product-rate.module';
-import { UserModule } from './modules/user/user.module';
-import { ProductModule } from './modules/product/product.module';
 import { BlogModule } from './modules/blog/blog.controller';
+import { CartModule } from './modules/cart/cart.module';
+import { ProductRateModule } from './modules/product-rate/product-rate.module';
+import { ProductModule } from './modules/product/product.module';
+import { UserModule } from './modules/user/user.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { BlogModule } from './modules/blog/blog.controller';
     AuthModule,
     UserModule,
     BlogModule,
+    CartModule,
   ],
   controllers: [AppController],
   providers: [AppService],
