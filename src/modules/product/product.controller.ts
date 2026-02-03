@@ -1,13 +1,23 @@
 /* eslint-disable prettier/prettier */
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { IFilterOptions } from 'src/commom/api.dto';
 import { ProductRequestDto } from './dto/request.dto';
 import { ProductService } from './product.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
-@ApiBearerAuth('access-token')
-@UseGuards(JwtAuthGuard)
+// @ApiBearerAuth('access-token')
+// @UseGuards(JwtAuthGuard)
 @Controller('product')
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
@@ -23,6 +33,11 @@ export class ProductController {
     return this.productService.getListProduct(options);
   }
 
+  @Get('get-product-by-id/:id')
+  getProductById(@Param('id') id: string) {
+    return this.productService.findById(id);
+  }
+
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a product' })
   delete(@Param('id') id: string) {
@@ -34,5 +49,4 @@ export class ProductController {
   patch(@Param('id') id: string, @Body() body: ProductRequestDto) {
     return this.productService.patch(id, body);
   }
-
 }

@@ -7,10 +7,10 @@ export class Product {
   @Prop({ required: true, type: String })
   name: string;
 
-  @Prop({ required: true, type: String })
+  @Prop({ required: true, type: Number })
   price: number;
 
-  @Prop({ required: true, type: String })
+  @Prop({ required: true, type: Number })
   discount: number;
 
   @Prop({ required: true, type: String })
@@ -25,7 +25,7 @@ export class Product {
   @Prop({ required: true, type: String })
   category_id: string;
 
-  @Prop({ required: true, type: String, default: 0 })
+  @Prop({ required: true, type: Number, default: 0 })
   total_star: number;
 
   @Prop({
