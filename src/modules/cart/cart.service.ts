@@ -1,18 +1,21 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model, Types } from 'mongoose';
 import { HTTP_RESPONSE } from 'src/constants/api.constant';
-import { IResponse } from 'src/model/api.model';
+import { IResponse, IResponseListData } from 'src/model/api.model';
 import { ICart } from 'src/model/cart.model';
 import { Errors } from 'src/model/error';
 import { ProductService } from '../product/product.service';
 import { UserService } from '../user/user.service';
 import { Cart, CartDocument } from './dto/schema.dto';
 import { CreateRequestDto, UpdateRequestDto } from './dto/request.dto';
+import { IUserJWT } from 'src/model/user.modal';
+import { IFilterOptions } from 'src/commom/api.dto';
 
 @Injectable()
 export class CartService {
@@ -23,8 +26,12 @@ export class CartService {
     private productService: ProductService,
   ) {}
 
-  async create(body: CreateRequestDto): Promise<IResponse<ICart | null>> {
-    const { idProduct, idUser, quantity } = body;
+  async create(
+    body: CreateRequestDto,
+    user: IUserJWT,
+  ): Promise<IResponse<ICart | null>> {
+    const { idProduct, quantity } = body;
+    const { idUser } = user;
 
     if (!idProduct || !idUser)
       throw new BadRequestException(
@@ -44,7 +51,24 @@ export class CartService {
         Errors.ITEM_NOT_FOUND('idProduct is not found'),
       );
 
-    const cart = await this.cartModel.create(body);
+    const productInCartExists = await this.cartModel.find({
+      idUser: idUser,
+      idProduct: idProduct,
+      isActive: true,
+    });
+
+    if (productInCartExists.length > 0)
+      throw new ConflictException(
+        Errors.CONFLICT('Sản phẩm đã tồn tại trong giỏ hàng'),
+      );
+
+    const payload = {
+      idUser,
+      idProduct,
+      quantity,
+    };
+
+    const cart = await this.cartModel.create(payload);
 
     return HTTP_RESPONSE.OK('en', cart);
   }
@@ -57,8 +81,12 @@ export class CartService {
     return HTTP_RESPONSE.OK('en', cart);
   }
 
-  async patch(body: UpdateRequestDto): Promise<IResponse<ICart | null>> {
-    const { idCart, idProduct, idUser, quantity } = body;
+  async patchQuantity(
+    body: UpdateRequestDto,
+    user: IUserJWT,
+  ): Promise<IResponse<ICart | null>> {
+    const { idCart, idProduct, quantity } = body;
+    const { idUser } = user;
 
     if (!idCart || !idProduct || !idUser)
       throw new BadRequestException(
@@ -97,6 +125,54 @@ export class CartService {
       throw new NotFoundException(Errors.ITEM_NOT_FOUND('Cart is not found'));
 
     return HTTP_RESPONSE.OK('en', cart);
+  }
+
+  async getListcart(
+    options: IFilterOptions,
+    user: IUserJWT,
+  ): Promise<IResponseListData<ICart | null>> {
+    const { idUser } = user;
+
+    const page = Number(options.page) || 1;
+    const pageSize = Number(options.pageSize) || 20;
+    const skip = (page - 1) * pageSize;
+
+    const userExists = await this.userService.findById(idUser);
+
+    if (!userExists)
+      throw new NotFoundException(Errors.ITEM_NOT_FOUND('User is not found'));
+
+    const [items, total] = await Promise.all([
+      this.cartModel
+        .find({ idUser: idUser, isActive: true })
+        .populate('idProduct')
+        .skip(skip)
+        .limit(pageSize)
+        .sort({ createAt: -1 })
+        .lean(),
+      this.cartModel.countDocuments({ idUser: idUser, isActive: true }),
+    ]);
+
+    const products = items.map(({ idProduct, ...rest }) => ({
+      ...rest,
+      product: idProduct,
+    }));
+
+    const totalPage = Math.ceil(total / pageSize);
+    const nextPage = page < totalPage;
+    const previousPage = page > 1;
+
+    return HTTP_RESPONSE.OK('en', {
+      items: products,
+      pagination: {
+        page,
+        pageSize,
+        total,
+        totalPage,
+        nextPage,
+        previousPage,
+      },
+    });
   }
 
   async findById(id: string) {

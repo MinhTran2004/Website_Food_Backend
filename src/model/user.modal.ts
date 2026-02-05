@@ -1,21 +1,28 @@
-import { IBaseResponse, IToken } from "./api.model"
+import { IBaseResponse, IToken } from './api.model';
 
 export interface IResponseAuth extends IBaseResponse {
-    data: IToken & {
-        user: IUser
-    } | null
+  data:
+    | (IToken & {
+        user: IUser;
+      })
+    | null;
 }
 
 export interface IUser {
-    id: string,
-    email: string,
-    username: string,
-    provider: string,
-    avatar: string
+  id: string;
+  email: string;
+  username: string;
+  provider: string;
+  avatar: string;
 }
 
 export enum PROVIDER {
-    NORMAL = 'NORMAL',
-    GOOGLE = 'google',
-    FACEBOOK = 'facebook'
+  NORMAL = 'NORMAL',
+  GOOGLE = 'google',
+  FACEBOOK = 'facebook',
 }
+
+export interface IUserJWT {
+    idUser: string;
+    email: string;
+  }

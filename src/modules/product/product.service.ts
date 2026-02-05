@@ -74,18 +74,12 @@ export class ProductService {
       this.productModel.countDocuments({}),
     ]);
 
-    const products = items.map((item: any) => ({
-      id: item._id.toString(),
-      ...item,
-      _id: undefined,
-    }));
-
     const totalPage = Math.ceil(total / pageSize);
     const nextPage = page < totalPage;
     const previousPage = page > 1;
 
     return HTTP_RESPONSE.OK('en', {
-      items: products,
+      items,
       pagination: {
         page,
         pageSize,
