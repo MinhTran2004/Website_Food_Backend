@@ -5,17 +5,17 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import mongoose, { Model, Types } from 'mongoose';
+import mongoose, { Model } from 'mongoose';
+import { IFilterOptions } from 'src/commom/api.dto';
 import { HTTP_RESPONSE } from 'src/constants/api.constant';
 import { IResponse, IResponseListData } from 'src/model/api.model';
 import { ICart } from 'src/model/cart.model';
 import { Errors } from 'src/model/error';
+import { IUserJWT } from 'src/model/user.modal';
 import { ProductService } from '../product/product.service';
 import { UserService } from '../user/user.service';
+import { CreateCartRequestDto, UpdateCartRequestDto } from './dto/request.dto';
 import { Cart, CartDocument } from './dto/schema.dto';
-import { CreateRequestDto, UpdateRequestDto } from './dto/request.dto';
-import { IUserJWT } from 'src/model/user.modal';
-import { IFilterOptions } from 'src/commom/api.dto';
 
 @Injectable()
 export class CartService {
@@ -25,14 +25,14 @@ export class CartService {
     private userService: UserService,
     private productService: ProductService,
   ) {}
-
+  // : Promise<IResponse<ICart | null>>
   async create(
-    body: CreateRequestDto,
+    body: CreateCartRequestDto,
     user: IUserJWT,
-  ): Promise<IResponse<ICart | null>> {
+  ) {
     const { idProduct, quantity } = body;
     const { idUser } = user;
-
+    
     if (!idProduct || !idUser)
       throw new BadRequestException(
         Errors.BAD_REQUEST('idProduct and idUser are required'),
@@ -42,6 +42,7 @@ export class CartService {
       throw new BadRequestException('Quantity must be a positive integer');
 
     const userExists = await this.userService.findById(idUser);
+    
     if (!userExists)
       throw new NotFoundException(Errors.ITEM_NOT_FOUND('user is not found'));
 
@@ -82,7 +83,7 @@ export class CartService {
   }
 
   async patchQuantity(
-    body: UpdateRequestDto,
+    body: UpdateCartRequestDto,
     user: IUserJWT,
   ): Promise<IResponse<ICart | null>> {
     const { idCart, idProduct, quantity } = body;

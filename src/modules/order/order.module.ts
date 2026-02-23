@@ -17,4 +17,4 @@ import { Order, OrderSchema } from './dto/schema.dto';
   providers: [OrderService],
   exports: [OrderService],
 })
-export class CartModule {}
+export class OrderModule {}

@@ -9,7 +9,7 @@ export interface IResponseAuth extends IBaseResponse {
 }
 
 export interface IUser {
-  id: string;
+  _id: string;
   email: string;
   username: string;
   provider: string;

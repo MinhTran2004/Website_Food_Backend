@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class CreateRequestDto {
+export class CreateCartRequestDto {
   @ApiProperty({ required: true, type: String })
   idProduct: string;
 
@@ -11,7 +11,7 @@ export class CreateRequestDto {
   isActive: boolean;
 }
 
-export class UpdateRequestDto extends CreateRequestDto {
+export class UpdateCartRequestDto extends CreateCartRequestDto {
   @ApiProperty({ required: true, type: String })
   idCart: string;
 }

@@ -7,14 +7,12 @@ import {
   Param,
   Patch,
   Post,
-  Query,
-  UseGuards,
+  Query
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { ApiOperation } from '@nestjs/swagger';
 import { IFilterOptions } from 'src/commom/api.dto';
-import { ProductRequestDto } from './dto/request.dto';
 import { ProductService } from './product.service';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { CreateProductRequestDto } from './dto/request.dto';
 
 // @ApiBearerAuth('access-token')
 // @UseGuards(JwtAuthGuard)
@@ -24,7 +22,7 @@ export class ProductController {
 
   @Post('')
   @ApiOperation({ summary: 'Create new product' })
-  create(@Body() body: ProductRequestDto) {
+  create(@Body() body: CreateProductRequestDto) {
     return this.productService.create(body);
   }
 
@@ -46,7 +44,7 @@ export class ProductController {
 
   @Patch(':id')
   @ApiOperation({ summary: 'Update a product' })
-  patch(@Param('id') id: string, @Body() body: ProductRequestDto) {
+  patch(@Param('id') id: string, @Body() body: CreateProductRequestDto) {
     return this.productService.patch(id, body);
   }
 }

@@ -11,7 +11,7 @@ import {
 } from 'src/model/api.model';
 import { Errors } from 'src/model/error';
 import { IProduct } from 'src/model/product.model';
-import { ProductRequestDto } from './dto/request.dto';
+import { CreateProductRequestDto } from './dto/request.dto';
 import { Product, ProductDocument } from './dto/schema.dto';
 
 @Injectable()
@@ -21,7 +21,7 @@ export class ProductService {
     private productModel: Model<ProductDocument>,
   ) {}
 
-  async create(data: ProductRequestDto): Promise<IResponse<IProduct | null>> {
+  async create(data: CreateProductRequestDto): Promise<IResponse<IProduct | null>> {
     const {
       name,
       price,
@@ -103,7 +103,7 @@ export class ProductService {
 
   async patch(
     id: string,
-    body: ProductRequestDto,
+    body: CreateProductRequestDto,
   ): Promise<IResponse<IProduct | null>> {
     const productExists = await this.productModel.findById(id);
     if (!productExists) {

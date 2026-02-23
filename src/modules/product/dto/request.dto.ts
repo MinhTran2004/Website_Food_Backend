@@ -2,7 +2,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty } from 'class-validator';
 
-export class ProductRequestDto {
+export class CreateProductRequestDto {
   @ApiProperty({ example: 'Hamburger' })
   @IsNotEmpty()
   readonly name: string;
@@ -30,4 +30,8 @@ export class ProductRequestDto {
   @ApiProperty()
   @IsNotEmpty()
   readonly category_id: string;
+}
+
+export class ProductRequestDto extends CreateProductRequestDto {
+  _id: string;
 }

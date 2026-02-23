@@ -1,20 +1,27 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { METHOD_PAYMENT } from 'src/model/order.model';
-import { IProduct } from 'src/model/product.model';
+import type { IAddress } from 'src/model/address.module';
+import { ICart } from 'src/model/cart.model';
+import { IOrderProduct, METHOD_PAYMENT } from 'src/model/order.model';
+import { UpdateAddressRequestDto } from 'src/modules/address/dto/request.dto';
 
-export class CreateRequestDto {
-  @ApiProperty({ required: true, type: String })
-  idUser: string;
-
+export class CreateOrderRequestDto {
   @ApiProperty({ required: true, type: Array })
-  product: IProduct[];
+  products: IOrderProduct[];
+
+  @ApiProperty({ required: true, type: UpdateAddressRequestDto  })
+  address: IAddress ;
 
   @ApiProperty({ required: true, type: Number })
   total: number;
 
-  @ApiProperty({ required: true, type: Number })
-  address: number;
-
   @ApiProperty({ required: true, enum: METHOD_PAYMENT })
-  method: string;
+  paymentMethods: METHOD_PAYMENT;
+}
+
+export class ProductOrderRequest {
+  idUser: string;
+  idProduct: string;
+  quantity: number;
+  isActive: boolean;
+  products: IOrderProduct[]
 }

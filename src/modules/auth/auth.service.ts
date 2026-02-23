@@ -83,7 +83,7 @@ export class AuthService {
             const res = await this.userService.createUserGoogle({ username: name, email: email, avatar: picture, provider: provider });
             if (res.data) {
                 const user = {
-                    id: res.data.id,
+                    _id: res.data._id,
                     email: res.data.email,
                     username: res.data.username,
                     avatar: res.data.avatar,
@@ -102,7 +102,7 @@ export class AuthService {
         const data = await this.userService.findById(emailExisted._id.toString())
 
         const user = {
-            id: data?.id,
+            id: data?._id,
             username: data?.username,
             avatar: data?.avatar,
             email: data?.email,
@@ -139,7 +139,7 @@ export class AuthService {
 
             if (res.data) {
                 const user = {
-                    id: res.data.id,
+                    _id: res.data._id,
                     email: res.data.email,
                     username: res.data.username,
                     avatar: res.data.avatar,
@@ -159,7 +159,7 @@ export class AuthService {
         if (!data) throw new BadRequestException(Errors.BAD_REQUEST('Find user error!'))
 
         const user = {
-            id: data?.id,
+            id: data?._id,
             username: data?.username,
             avatar: data?.avatar,
             email: data?.email,

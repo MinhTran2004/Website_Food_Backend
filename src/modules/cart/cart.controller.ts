@@ -14,7 +14,7 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { IFilterOptions } from 'src/commom/api.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CartService } from './cart.service';
-import { CreateRequestDto, UpdateRequestDto } from './dto/request.dto';
+import { CreateCartRequestDto, UpdateCartRequestDto } from './dto/request.dto';
 
 @ApiTags('Cart')
 @Controller('cart')
@@ -25,14 +25,14 @@ export class CartController {
 
   @Post('')
   @ApiOperation({ summary: 'Add product to your cart' })
-  create(@Req() req, @Body() body: CreateRequestDto) {
+  create(@Req() req, @Body() body: CreateCartRequestDto) {
     const user = req.user;
     return this.cartService.create(body, user);
   }
 
   @Patch('update-quantity-cart')
   @ApiOperation({ summary: 'Update cart by id' })
-  patchQuantity(@Req() req, @Body() body: UpdateRequestDto) {
+  patchQuantity(@Req() req, @Body() body: UpdateCartRequestDto) {
     const user = req.user;
     return this.cartService.patchQuantity(body, user);
   }

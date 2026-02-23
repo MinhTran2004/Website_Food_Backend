@@ -2,9 +2,15 @@ import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import * as dotenv from 'dotenv';
+import dns from 'dns';
 
 dotenv.config();
+dns.setServers([
+  '1.1.1.1', // Cloudflare
+  '8.8.8.8', // Google
+]);
 
+dns.setDefaultResultOrder('ipv4first');
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.enableCors({
