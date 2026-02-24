@@ -32,13 +32,14 @@ let AddressService = class AddressService {
         if (!idUser)
             throw new common_1.NotFoundException(error_1.Errors.ITEM_NOT_FOUND('User is not found'));
         const payload = { idUser: idUser, ...body };
+        await this.addressModel.updateMany({ idUser: idUser }, { isDefault: false });
         const addressNew = await this.addressModel.create(payload);
         if (!addressNew)
             throw new common_1.ConflictException(error_1.Errors.CONFLICT('Create address new is failed'));
         return api_constant_1.HTTP_RESPONSE.CREATED('en', addressNew);
     }
     async getAddressByDefault(user) {
-        const { email, idUser } = user;
+        const { idUser } = user;
         if (!idUser)
             throw new common_1.NotFoundException(error_1.Errors.ITEM_NOT_FOUND('User is not found'));
         const address = await this.addressModel.findOne({
@@ -94,8 +95,14 @@ let AddressService = class AddressService {
             throw new common_1.BadRequestException(error_1.Errors.BAD_REQUEST('anameAddress, addressDetail, city, district, phone, isDefault is required'));
         if (!idUser)
             throw new common_1.NotFoundException(error_1.Errors.ITEM_NOT_FOUND('User is not found'));
+        if (body.isDefault === true) {
+            await this.addressModel.updateMany({ idUser: idUser }, { isDefault: false });
+        }
         const address = await this.addressModel.findByIdAndUpdate(_id, body);
         return api_constant_1.HTTP_RESPONSE.OK('en', address);
+    }
+    async delete(id) {
+        return await this.addressModel.findByIdAndDelete(id);
     }
 };
 exports.AddressService = AddressService;

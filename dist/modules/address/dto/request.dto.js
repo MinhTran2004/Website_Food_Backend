@@ -17,6 +17,7 @@ class CreateAddressRequestDto {
     phone;
     addressDetail;
     district;
+    isDefault;
     city;
 }
 exports.CreateAddressRequestDto = CreateAddressRequestDto;
@@ -41,13 +42,17 @@ __decorate([
     __metadata("design:type", String)
 ], CreateAddressRequestDto.prototype, "district", void 0);
 __decorate([
+    (0, swagger_1.ApiProperty)({ required: true, type: Boolean }),
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", Boolean)
+], CreateAddressRequestDto.prototype, "isDefault", void 0);
+__decorate([
     (0, swagger_1.ApiProperty)({ required: true, type: String }),
     (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
 ], CreateAddressRequestDto.prototype, "city", void 0);
 class UpdateAddressRequestDto extends CreateAddressRequestDto {
     _id;
-    isDefault;
 }
 exports.UpdateAddressRequestDto = UpdateAddressRequestDto;
 __decorate([
@@ -55,8 +60,3 @@ __decorate([
     (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
 ], UpdateAddressRequestDto.prototype, "_id", void 0);
-__decorate([
-    (0, swagger_1.ApiProperty)({ required: true, type: Boolean }),
-    (0, class_validator_1.IsNotEmpty)(),
-    __metadata("design:type", Boolean)
-], UpdateAddressRequestDto.prototype, "isDefault", void 0);

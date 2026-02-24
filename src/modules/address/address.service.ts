@@ -44,6 +44,11 @@ export class AddressService {
 
     const payload = { idUser: idUser, ...body };
 
+    await this.addressModel.updateMany(
+      { idUser: idUser },
+      { isDefault: false },
+    );
+
     const addressNew = await this.addressModel.create(payload);
 
     if (!addressNew)
@@ -57,7 +62,7 @@ export class AddressService {
   async getAddressByDefault(
     user: IUserJWT,
   ): Promise<IResponse<IAddress | null>> {
-    const { email, idUser } = user;
+    const { idUser } = user;
 
     if (!idUser)
       throw new NotFoundException(Errors.ITEM_NOT_FOUND('User is not found'));
@@ -149,8 +154,19 @@ export class AddressService {
     if (!idUser)
       throw new NotFoundException(Errors.ITEM_NOT_FOUND('User is not found'));
 
+    if (body.isDefault === true) {
+      await this.addressModel.updateMany(
+        { idUser: idUser },
+        { isDefault: false },
+      );
+    }
+
     const address = await this.addressModel.findByIdAndUpdate(_id, body);
 
     return HTTP_RESPONSE.OK('en', address);
+  }
+
+  async delete(id: string) {
+    return await this.addressModel.findByIdAndDelete(id);
   }
 }

@@ -18,6 +18,10 @@ export class CreateAddressRequestDto {
   @IsNotEmpty()
   district: string;
 
+  @ApiProperty({ required: true, type: Boolean })
+  @IsNotEmpty()
+  isDefault: boolean;
+
   @ApiProperty({ required: true, type: String })
   @IsNotEmpty()
   city: string;
@@ -27,8 +31,4 @@ export class UpdateAddressRequestDto extends CreateAddressRequestDto {
   @ApiProperty({ required: true, type: String })
   @IsNotEmpty()
   _id: string;
-
-  @ApiProperty({ required: true, type: Boolean })
-  @IsNotEmpty()
-  isDefault: boolean;
 }

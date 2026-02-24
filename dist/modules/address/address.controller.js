@@ -40,6 +40,9 @@ let AddressController = class AddressController {
         const user = req.user;
         return this.addressService.patch(body, user);
     }
+    delete(id) {
+        return this.addressService.delete(id);
+    }
 };
 exports.AddressController = AddressController;
 __decorate([
@@ -77,6 +80,14 @@ __decorate([
     __metadata("design:paramtypes", [Object, request_dto_1.UpdateAddressRequestDto]),
     __metadata("design:returntype", void 0)
 ], AddressController.prototype, "patch", null);
+__decorate([
+    (0, common_1.Delete)(':id'),
+    (0, swagger_1.ApiOperation)({ summary: 'Delete by id' }),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], AddressController.prototype, "delete", null);
 exports.AddressController = AddressController = __decorate([
     (0, swagger_1.ApiTags)('Address'),
     (0, common_1.Controller)('address'),

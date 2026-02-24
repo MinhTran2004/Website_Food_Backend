@@ -1,7 +1,9 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
+  Param,
   Patch,
   Post,
   Query,
@@ -10,7 +12,10 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AddressService } from './address.service';
-import { CreateAddressRequestDto, UpdateAddressRequestDto } from './dto/request.dto';
+import {
+  CreateAddressRequestDto,
+  UpdateAddressRequestDto,
+} from './dto/request.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { IFilterOptions } from 'src/commom/api.dto';
 
@@ -47,5 +52,11 @@ export class AddressController {
   patch(@Req() req, @Body() body: UpdateAddressRequestDto) {
     const user = req.user;
     return this.addressService.patch(body, user);
+  }
+
+  @Delete(':id')
+  @ApiOperation({ summary: 'Delete by id' })
+  delete(@Param('id') id: string) {
+    return this.addressService.delete(id);
   }
 }
