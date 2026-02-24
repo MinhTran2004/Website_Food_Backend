@@ -21,7 +21,9 @@ export class ProductService {
     private productModel: Model<ProductDocument>,
   ) {}
 
-  async create(data: CreateProductRequestDto): Promise<IResponse<IProduct | null>> {
+  async create(
+    data: CreateProductRequestDto,
+  ): Promise<IResponse<IProduct | null>> {
     const {
       name,
       price,
@@ -66,7 +68,7 @@ export class ProductService {
 
     const [items, total] = await Promise.all([
       this.productModel
-        .find({})
+        .find({ isActive: true })
         .skip(skip)
         .limit(pageSize)
         .sort({ createAt: -1 })

@@ -25,14 +25,14 @@ export class CartService {
     private userService: UserService,
     private productService: ProductService,
   ) {}
-  // : Promise<IResponse<ICart | null>>
+
   async create(
     body: CreateCartRequestDto,
     user: IUserJWT,
-  ) {
+  ): Promise<IResponse<ICart | null>> {
     const { idProduct, quantity } = body;
     const { idUser } = user;
-    
+
     if (!idProduct || !idUser)
       throw new BadRequestException(
         Errors.BAD_REQUEST('idProduct and idUser are required'),
@@ -42,7 +42,7 @@ export class CartService {
       throw new BadRequestException('Quantity must be a positive integer');
 
     const userExists = await this.userService.findById(idUser);
-    
+
     if (!userExists)
       throw new NotFoundException(Errors.ITEM_NOT_FOUND('user is not found'));
 
@@ -82,7 +82,11 @@ export class CartService {
     return HTTP_RESPONSE.OK('en', cart);
   }
 
-  async patchQuantity(
+  async patchMany(ids: string[], body?: Partial<ICart>) {
+    return this.cartModel.updateMany({ _id: { $in: ids } }, { $set: body });
+  }
+
+  async patch(
     body: UpdateCartRequestDto,
     user: IUserJWT,
   ): Promise<IResponse<ICart | null>> {
@@ -114,13 +118,9 @@ export class CartService {
         Errors.ITEM_NOT_FOUND('idProduct is not found'),
       );
 
-    const cart = await this.cartModel.findByIdAndUpdate(
-      idCart,
-      { idProduct, idUser, quantity },
-      {
-        new: true,
-      },
-    );
+    const cart = await this.cartModel.findByIdAndUpdate(idCart, body, {
+      new: true,
+    });
 
     if (!cart)
       throw new NotFoundException(Errors.ITEM_NOT_FOUND('Cart is not found'));

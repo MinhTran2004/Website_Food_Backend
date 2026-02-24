@@ -5,18 +5,16 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { ProductService } from '../product/product.service';
-import { UserService } from '../user/user.service';
-import { Order, OrderDocument } from './dto/schema.dto';
-import { CreateOrderRequestDto } from './dto/request.dto';
-import { IUserJWT } from 'src/model/user.modal';
-import { Errors } from 'src/model/error';
-import { IResponse, IResponseListData } from 'src/model/api.model';
-import { IOrder } from 'src/model/order.model';
-import { HTTP_RESPONSE } from 'src/constants/api.constant';
-import { IAddress } from 'src/model/address.module';
-import { UpdateAddressRequestDto } from '../address/dto/request.dto';
 import { IFilterOptions } from 'src/commom/api.dto';
+import { HTTP_RESPONSE } from 'src/constants/api.constant';
+import { IResponse, IResponseListData } from 'src/model/api.model';
+import { Errors } from 'src/model/error';
+import { IOrder } from 'src/model/order.model';
+import { IUserJWT } from 'src/model/user.modal';
+import { CartService } from '../cart/cart.service';
+import { UserService } from '../user/user.service';
+import { CreateOrderRequestDto } from './dto/request.dto';
+import { Order, OrderDocument } from './dto/schema.dto';
 
 @Injectable()
 export class OrderService {
@@ -24,7 +22,7 @@ export class OrderService {
     @InjectModel(Order.name)
     private orderModel: Model<OrderDocument>,
     private userService: UserService,
-    private productService: ProductService,
+    private cartService: CartService,
   ) {}
 
   async create(
@@ -63,6 +61,19 @@ export class OrderService {
 
     const order = await this.orderModel.create(payload);
 
+    const productIds = body.products
+      .map((item) => item._id)
+      .filter((id): id is string => Boolean(id));
+
+    const hiddenCart = await this.cartService.patchMany(productIds, {
+      isActive: false,
+    });
+
+    if (!hiddenCart)
+      throw new BadRequestException(
+        Errors.BAD_REQUEST('Remove product in cart failure'),
+      );
+
     return HTTP_RESPONSE.CREATED('en', order);
   }
 
@@ -88,7 +99,7 @@ export class OrderService {
         .limit(pageSize)
         .sort({ createAt: -1 })
         .lean(),
-      this.orderModel.countDocuments({ idUser: idUser}),
+      this.orderModel.countDocuments({ 'user._id': idUser }),
     ]);
 
     const totalPage = Math.ceil(total / pageSize);

@@ -97,7 +97,10 @@ let CartService = class CartService {
             throw new common_1.NotFoundException(error_1.Errors.ITEM_NOT_FOUND('Cart is not found'));
         return api_constant_1.HTTP_RESPONSE.OK('en', cart);
     }
-    async patchQuantity(body, user) {
+    async patchMany(ids, body) {
+        return this.cartModel.updateMany({ _id: { $in: ids } }, { $set: body });
+    }
+    async patch(body, user) {
         const { idCart, idProduct, quantity } = body;
         const { idUser } = user;
         if (!idCart || !idProduct || !idUser)
@@ -114,7 +117,7 @@ let CartService = class CartService {
         const productExists = await this.productService.findById(idProduct);
         if (!productExists)
             throw new common_1.NotFoundException(error_1.Errors.ITEM_NOT_FOUND('idProduct is not found'));
-        const cart = await this.cartModel.findByIdAndUpdate(idCart, { idProduct, idUser, quantity }, {
+        const cart = await this.cartModel.findByIdAndUpdate(idCart, body, {
             new: true,
         });
         if (!cart)

@@ -30,11 +30,11 @@ export class CartController {
     return this.cartService.create(body, user);
   }
 
-  @Patch('update-quantity-cart')
+  @Patch('')
   @ApiOperation({ summary: 'Update cart by id' })
-  patchQuantity(@Req() req, @Body() body: UpdateCartRequestDto) {
+  patch(@Req() req, @Body() body: UpdateCartRequestDto) {
     const user = req.user;
-    return this.cartService.patchQuantity(body, user);
+    return this.cartService.patch(body, user);
   }
 
   @Delete(':id')

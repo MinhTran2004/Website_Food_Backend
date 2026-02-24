@@ -16,19 +16,19 @@ exports.OrderService = void 0;
 const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
-const product_service_1 = require("../product/product.service");
+const api_constant_1 = require("../../constants/api.constant");
+const error_1 = require("../../model/error");
+const cart_service_1 = require("../cart/cart.service");
 const user_service_1 = require("../user/user.service");
 const schema_dto_1 = require("./dto/schema.dto");
-const error_1 = require("../../model/error");
-const api_constant_1 = require("../../constants/api.constant");
 let OrderService = class OrderService {
     orderModel;
     userService;
-    productService;
-    constructor(orderModel, userService, productService) {
+    cartService;
+    constructor(orderModel, userService, cartService) {
         this.orderModel = orderModel;
         this.userService = userService;
-        this.productService = productService;
+        this.cartService = cartService;
     }
     async create(body, user) {
         const { address, paymentMethods, products, total } = body;
@@ -52,6 +52,14 @@ let OrderService = class OrderService {
             total: body.total,
         };
         const order = await this.orderModel.create(payload);
+        const productIds = body.products
+            .map((item) => item._id)
+            .filter((id) => Boolean(id));
+        const hiddenCart = await this.cartService.patchMany(productIds, {
+            isActive: false,
+        });
+        if (!hiddenCart)
+            throw new common_1.BadRequestException(error_1.Errors.BAD_REQUEST('Remove product in cart failure'));
         return api_constant_1.HTTP_RESPONSE.CREATED('en', order);
     }
     async getListOrder(options, user) {
@@ -69,7 +77,7 @@ let OrderService = class OrderService {
                 .limit(pageSize)
                 .sort({ createAt: -1 })
                 .lean(),
-            this.orderModel.countDocuments({ idUser: idUser }),
+            this.orderModel.countDocuments({ 'user._id': idUser }),
         ]);
         const totalPage = Math.ceil(total / pageSize);
         const nextPage = page < totalPage;
@@ -96,5 +104,5 @@ exports.OrderService = OrderService = __decorate([
     __param(0, (0, mongoose_1.InjectModel)(schema_dto_1.Order.name)),
     __metadata("design:paramtypes", [mongoose_2.Model,
         user_service_1.UserService,
-        product_service_1.ProductService])
+        cart_service_1.CartService])
 ], OrderService);

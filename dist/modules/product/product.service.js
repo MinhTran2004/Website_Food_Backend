@@ -47,7 +47,7 @@ let ProductService = class ProductService {
         const skip = (page - 1) * pageSize;
         const [items, total] = await Promise.all([
             this.productModel
-                .find({})
+                .find({ isActive: true })
                 .skip(skip)
                 .limit(pageSize)
                 .sort({ createAt: -1 })

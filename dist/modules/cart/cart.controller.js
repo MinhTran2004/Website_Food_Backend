@@ -28,9 +28,9 @@ let CartController = class CartController {
         const user = req.user;
         return this.cartService.create(body, user);
     }
-    patchQuantity(req, body) {
+    patch(req, body) {
         const user = req.user;
-        return this.cartService.patchQuantity(body, user);
+        return this.cartService.patch(body, user);
     }
     delete(id) {
         return this.cartService.delete(id);
@@ -51,14 +51,14 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], CartController.prototype, "create", null);
 __decorate([
-    (0, common_1.Patch)('update-quantity-cart'),
+    (0, common_1.Patch)(''),
     (0, swagger_1.ApiOperation)({ summary: 'Update cart by id' }),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, request_dto_1.UpdateCartRequestDto]),
     __metadata("design:returntype", void 0)
-], CartController.prototype, "patchQuantity", null);
+], CartController.prototype, "patch", null);
 __decorate([
     (0, common_1.Delete)(':id'),
     (0, swagger_1.ApiOperation)({ summary: 'Delete cart by id' }),

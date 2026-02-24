@@ -1,6 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
 import type { IAddress } from 'src/model/address.module';
-import { ICart } from 'src/model/cart.model';
 import { IOrderProduct, METHOD_PAYMENT } from 'src/model/order.model';
 import { UpdateAddressRequestDto } from 'src/modules/address/dto/request.dto';
 
