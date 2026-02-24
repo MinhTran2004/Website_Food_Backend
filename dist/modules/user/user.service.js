@@ -66,18 +66,25 @@ let UserService = class UserService {
         const existed = await this.userModel.findOne({ email: account.email });
         if (existed)
             throw new common_1.ConflictException(error_1.Errors.BAD_REQUEST('Email already exists'));
-        const passwordHash = await bcrypt.hash(password, 10);
+        const passwordHash = (await bcrypt.hash(password, 10));
         const userCreate = await this.userModel.create({
             ...data,
-            password: passwordHash
+            password: passwordHash,
         });
         if (!userCreate)
             throw new common_1.BadRequestException('Create new user failure');
         return api_constant_1.HTTP_RESPONSE.CREATED('en', this.userModel.create({
             ...data,
             password: passwordHash,
-            provider: user_modal_1.PROVIDER.NORMAL
+            provider: user_modal_1.PROVIDER.NORMAL,
         }));
+    }
+    async get(user) {
+        const { idUser } = user;
+        if (!idUser)
+            throw new common_1.BadRequestException(error_1.Errors.BAD_REQUEST('IdUser is required'));
+        const userExists = await this.userModel.findById(idUser);
+        return api_constant_1.HTTP_RESPONSE.OK('en', userExists);
     }
     async findByEmailForAuth(email) {
         return this.userModel.findOne({ email }).select('+password');

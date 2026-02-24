@@ -1,84 +1,128 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable prettier/prettier */
-import { BadRequestException, ConflictException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
 import { Model } from 'mongoose';
 import { HTTP_RESPONSE } from 'src/constants/api.constant';
 import { IResponse } from 'src/model/api.model';
 import { BaseException, Errors } from 'src/model/error';
-import { IUser, PROVIDER } from 'src/model/user.modal';
+import { IUser, IUserJWT, PROVIDER } from 'src/model/user.modal';
 import { RegisterRequestDto } from './dto/request.dto';
 import { User, UserDocument } from './dto/schema.dto';
 
 @Injectable()
 export class UserService {
+  constructor(
+    @InjectModel(User.name)
+    private userModel: Model<UserDocument>,
+  ) {}
 
-    constructor(
-        @InjectModel(User.name)
-        private userModel: Model<UserDocument>,
-    ) { }
+  async create(data: RegisterRequestDto): Promise<IResponse<IUser | null>> {
+    const { password, ...account } = data;
 
-    async create(data: RegisterRequestDto): Promise<IResponse<IUser | null>> {
-        const { password, ...account } = data;
+    if (password.length < 6)
+      throw new BaseException(
+        Errors.BAD_REQUEST('Minimum password length is 6.'),
+      );
 
-        if (password.length < 6) throw new BaseException(Errors.BAD_REQUEST('Minimum password length is 6.'))
+    const existed = await this.userModel.findOne({ email: account.email });
 
-        const existed = await this.userModel.findOne({ email: account.email })
+    if (existed)
+      throw new ConflictException(Errors.BAD_REQUEST('Email already exists'));
 
-        if (existed) throw new ConflictException(Errors.BAD_REQUEST('Email already exists'));
+    const passwordHash = (await bcrypt.hash(password, 10)) as string;
 
-        const passwordHash = await bcrypt.hash(password, 10) as string;
+    const userCreate = await this.userModel.create({
+      ...data,
+      password: passwordHash,
+    });
 
-        const userCreate = await this.userModel.create({
-            ...data,
-            password: passwordHash
-        })
+    if (!userCreate) throw new BadRequestException('Create new user failure');
 
-        if (!userCreate) throw new BadRequestException('Create new user failure')
+    return HTTP_RESPONSE.CREATED(
+      'en',
+      this.userModel.create({
+        ...data,
+        password: passwordHash,
+        provider: PROVIDER.NORMAL,
+      }),
+    );
+  }
 
-        return HTTP_RESPONSE.CREATED('en',
-            this.userModel.create({
-                ...data,
-                password: passwordHash,
-                provider: PROVIDER.NORMAL
-            }))
-    }
+  async get(user: IUserJWT): Promise<IResponse<IUser | null>> {
+    const { idUser } = user;
 
-    async findByEmailForAuth(email: string) {
-        return this.userModel.findOne({ email }).select('+password');
-    }
+    if (!idUser)
+      throw new BadRequestException(Errors.BAD_REQUEST('IdUser is required'));
 
-    async existsByEmail(email: string) {
-        return this.userModel.exists({ email });
-    }
+    const userExists = await this.userModel.findById(idUser);
 
-    async findById(id: string) {
-        return this.userModel.findById(id);
-    }
+    return HTTP_RESPONSE.OK('en', userExists);
+  }
 
-    async createUserProvider(body: { email: string, username: string, avatar: string, provider: string }): Promise<IResponse<IUser | null>> {
-        const user = await this.userModel.create(body);
+  async findByEmailForAuth(email: string) {
+    return this.userModel.findOne({ email }).select('+password');
+  }
 
-        if (!user) throw new BadRequestException(Errors.BAD_REQUEST('Create new user failure'))
+  async existsByEmail(email: string) {
+    return this.userModel.exists({ email });
+  }
 
-        return HTTP_RESPONSE.CREATED('en', user);
-    }
+  async findById(id: string) {
+    return this.userModel.findById(id);
+  }
 
-    async createUserGoogle(body: { email: string, username: string, avatar: string, provider: string }): Promise<IResponse<IUser | null>> {
-        const user = await this.userModel.create(body);
+  async createUserProvider(body: {
+    email: string;
+    username: string;
+    avatar: string;
+    provider: string;
+  }): Promise<IResponse<IUser | null>> {
+    const user = await this.userModel.create(body);
 
-        if (!user) throw new BadRequestException(Errors.BAD_REQUEST('Create new user failure'))
+    if (!user)
+      throw new BadRequestException(
+        Errors.BAD_REQUEST('Create new user failure'),
+      );
 
-        return HTTP_RESPONSE.CREATED('en', user);
-    }
+    return HTTP_RESPONSE.CREATED('en', user);
+  }
 
-    async createUserFacebook(body: { email: string, username: string, avatar: string, provider: string }): Promise<IResponse<IUser | null>> {
-        const user = await this.userModel.create(body);
+  async createUserGoogle(body: {
+    email: string;
+    username: string;
+    avatar: string;
+    provider: string;
+  }): Promise<IResponse<IUser | null>> {
+    const user = await this.userModel.create(body);
 
-        if (!user) throw new BadRequestException(Errors.BAD_REQUEST('Create new user failure'))
+    if (!user)
+      throw new BadRequestException(
+        Errors.BAD_REQUEST('Create new user failure'),
+      );
 
-        return HTTP_RESPONSE.CREATED('en', user);
-    }
+    return HTTP_RESPONSE.CREATED('en', user);
+  }
+
+  async createUserFacebook(body: {
+    email: string;
+    username: string;
+    avatar: string;
+    provider: string;
+  }): Promise<IResponse<IUser | null>> {
+    const user = await this.userModel.create(body);
+
+    if (!user)
+      throw new BadRequestException(
+        Errors.BAD_REQUEST('Create new user failure'),
+      );
+
+    return HTTP_RESPONSE.CREATED('en', user);
+  }
 }
