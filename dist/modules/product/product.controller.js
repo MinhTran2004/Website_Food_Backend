@@ -15,7 +15,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ProductController = void 0;
 const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
-const api_dto_1 = require("../../commom/api.dto");
 const product_service_1 = require("./product.service");
 const request_dto_1 = require("./dto/request.dto");
 let ProductController = class ProductController {
@@ -52,7 +51,7 @@ __decorate([
     (0, common_1.Get)('get-list-product'),
     __param(0, (0, common_1.Query)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [api_dto_1.IFilterOptions]),
+    __metadata("design:paramtypes", [request_dto_1.FilterProductDto]),
     __metadata("design:returntype", void 0)
 ], ProductController.prototype, "getListProduct", null);
 __decorate([

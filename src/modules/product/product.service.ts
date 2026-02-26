@@ -2,7 +2,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { IFilterOptions } from 'src/commom/api.dto';
 import { HTTP_RESPONSE } from 'src/constants/api.constant';
 import {
   IBaseResponse,
@@ -11,7 +10,7 @@ import {
 } from 'src/model/api.model';
 import { Errors } from 'src/model/error';
 import { IProduct } from 'src/model/product.model';
-import { CreateProductRequestDto } from './dto/request.dto';
+import { CreateProductRequestDto, FilterProductDto } from './dto/request.dto';
 import { Product, ProductDocument } from './dto/schema.dto';
 
 @Injectable()
@@ -24,28 +23,12 @@ export class ProductService {
   async create(
     data: CreateProductRequestDto,
   ): Promise<IResponse<IProduct | null>> {
-    const {
-      name,
-      price,
-      description,
-      description_detail,
-      image,
-      discount,
-      category_id,
-    } = data;
+    const { name, price, description, image, discount, category } = data;
 
-    if (
-      !name &&
-      !price &&
-      !description &&
-      !description_detail &&
-      !image &&
-      !discount &&
-      !category_id
-    )
+    if (!name && !price && !description && !image && !discount && !category)
       throw new BadRequestException(
         Errors.BAD_REQUEST(
-          'Name, price, description, description_detail, image, discount, category_id is empty!',
+          'Name, price, description, image, discount, category is empty!',
         ),
       );
 
@@ -60,20 +43,33 @@ export class ProductService {
   }
 
   async getListProduct(
-    options: IFilterOptions,
+    options: FilterProductDto,
   ): Promise<IResponseListData<IProduct | null>> {
     const page = Number(options.page) || 1;
     const pageSize = Number(options.pageSize) || 20;
     const skip = (page - 1) * pageSize;
 
+    const filter: any = {
+      category: options.category || 'MAIN_COURES',
+      isActive: true,
+    };
+
+    if (options.price === 'MIN') {
+      filter.price = { $lte: 50000 };
+    } else if (options.price === 'MEDIUM') {
+      filter.price = { $gt: 50000, $lte: 150000 };
+    } else if (options.price === 'MAX') {
+      filter.price = { $gt: 150000 };
+    }
+    
     const [items, total] = await Promise.all([
       this.productModel
-        .find({ isActive: true })
+        .find(filter)
         .skip(skip)
         .limit(pageSize)
         .sort({ createAt: -1 })
         .lean(),
-      this.productModel.countDocuments({}),
+      this.productModel.countDocuments(filter),
     ]);
 
     const totalPage = Math.ceil(total / pageSize);

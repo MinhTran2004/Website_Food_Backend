@@ -9,17 +9,18 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ProductRequestDto = exports.CreateProductRequestDto = void 0;
+exports.FilterProductDto = exports.ProductRequestDto = exports.CreateProductRequestDto = void 0;
 const swagger_1 = require("@nestjs/swagger");
 const class_validator_1 = require("class-validator");
+const api_dto_1 = require("../../../commom/api.dto");
+const product_model_1 = require("../../../model/product.model");
 class CreateProductRequestDto {
     name;
     price;
     discount;
     description;
-    description_detail;
     image;
-    category_id;
+    category;
 }
 exports.CreateProductRequestDto = CreateProductRequestDto;
 __decorate([
@@ -43,21 +44,31 @@ __decorate([
     __metadata("design:type", String)
 ], CreateProductRequestDto.prototype, "description", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ example: 'string' }),
-    (0, class_validator_1.IsNotEmpty)(),
-    __metadata("design:type", String)
-], CreateProductRequestDto.prototype, "description_detail", void 0);
-__decorate([
     (0, swagger_1.ApiProperty)(),
     (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
 ], CreateProductRequestDto.prototype, "image", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)(),
+    (0, swagger_1.ApiProperty)({ enum: product_model_1.CATEGORY_PRODUCT }),
     (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
-], CreateProductRequestDto.prototype, "category_id", void 0);
+], CreateProductRequestDto.prototype, "category", void 0);
 class ProductRequestDto extends CreateProductRequestDto {
     _id;
 }
 exports.ProductRequestDto = ProductRequestDto;
+class FilterProductDto extends api_dto_1.IFilterOptions {
+    category;
+    price;
+}
+exports.FilterProductDto = FilterProductDto;
+__decorate([
+    (0, swagger_1.ApiProperty)({ enum: product_model_1.CATEGORY_PRODUCT }),
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", String)
+], FilterProductDto.prototype, "category", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ enum: product_model_1.FILTER_PRICE }),
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", String)
+], FilterProductDto.prototype, "price", void 0);

@@ -25,15 +25,9 @@ let ProductService = class ProductService {
         this.productModel = productModel;
     }
     async create(data) {
-        const { name, price, description, description_detail, image, discount, category_id, } = data;
-        if (!name &&
-            !price &&
-            !description &&
-            !description_detail &&
-            !image &&
-            !discount &&
-            !category_id)
-            throw new common_1.BadRequestException(error_1.Errors.BAD_REQUEST('Name, price, description, description_detail, image, discount, category_id is empty!'));
+        const { name, price, description, image, discount, category } = data;
+        if (!name && !price && !description && !image && !discount && !category)
+            throw new common_1.BadRequestException(error_1.Errors.BAD_REQUEST('Name, price, description, image, discount, category is empty!'));
         const nameExisted = await this.productModel.findOne({ name: name });
         if (nameExisted) {
             return api_constant_1.HTTP_RESPONSE.CONFLICT('en');
@@ -45,14 +39,28 @@ let ProductService = class ProductService {
         const page = Number(options.page) || 1;
         const pageSize = Number(options.pageSize) || 20;
         const skip = (page - 1) * pageSize;
+        const filter = {
+            category: options.category || 'MAIN_COURES',
+            isActive: true,
+        };
+        if (options.price === 'MIN') {
+            filter.price = { $lte: 50000 };
+        }
+        else if (options.price === 'MEDIUM') {
+            filter.price = { $gt: 50000, $lte: 150000 };
+        }
+        else if (options.price === 'MAX') {
+            filter.price = { $gt: 150000 };
+        }
+        console.log('filter', filter);
         const [items, total] = await Promise.all([
             this.productModel
-                .find({ isActive: true })
+                .find(filter)
                 .skip(skip)
                 .limit(pageSize)
                 .sort({ createAt: -1 })
                 .lean(),
-            this.productModel.countDocuments({}),
+            this.productModel.countDocuments(filter),
         ]);
         const totalPage = Math.ceil(total / pageSize);
         const nextPage = page < totalPage;

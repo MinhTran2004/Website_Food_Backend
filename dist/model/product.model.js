@@ -1,2 +1,15 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.FILTER_PRICE = exports.CATEGORY_PRODUCT = void 0;
+var CATEGORY_PRODUCT;
+(function (CATEGORY_PRODUCT) {
+    CATEGORY_PRODUCT["MAIN_COURES"] = "MAIN_COURES";
+    CATEGORY_PRODUCT["DESSERT"] = "DESSERT";
+    CATEGORY_PRODUCT["APPETIZER"] = "APPETIZER";
+})(CATEGORY_PRODUCT || (exports.CATEGORY_PRODUCT = CATEGORY_PRODUCT = {}));
+var FILTER_PRICE;
+(function (FILTER_PRICE) {
+    FILTER_PRICE["MIN"] = "MIN";
+    FILTER_PRICE["MEDIUM"] = "MEDIUM";
+    FILTER_PRICE["MAX"] = "MAX";
+})(FILTER_PRICE || (exports.FILTER_PRICE = FILTER_PRICE = {}));

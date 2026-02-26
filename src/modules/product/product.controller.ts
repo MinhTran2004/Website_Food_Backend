@@ -12,7 +12,7 @@ import {
 import { ApiOperation } from '@nestjs/swagger';
 import { IFilterOptions } from 'src/commom/api.dto';
 import { ProductService } from './product.service';
-import { CreateProductRequestDto } from './dto/request.dto';
+import { CreateProductRequestDto, FilterProductDto } from './dto/request.dto';
 
 // @ApiBearerAuth('access-token')
 // @UseGuards(JwtAuthGuard)
@@ -27,7 +27,7 @@ export class ProductController {
   }
 
   @Get('get-list-product')
-  getListProduct(@Query() options: IFilterOptions) {
+  getListProduct(@Query() options: FilterProductDto) {
     return this.productService.getListProduct(options);
   }
 

@@ -11,14 +11,14 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ProductSchema = exports.Product = void 0;
 const mongoose_1 = require("@nestjs/mongoose");
+const product_model_1 = require("../../../model/product.model");
 let Product = class Product {
     name;
     price;
     discount;
     description;
-    description_detail;
     image;
-    category_id;
+    category;
     total_star;
     rates;
     isActive;
@@ -43,15 +43,11 @@ __decorate([
 __decorate([
     (0, mongoose_1.Prop)({ required: true, type: String }),
     __metadata("design:type", String)
-], Product.prototype, "description_detail", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ required: true, type: String }),
-    __metadata("design:type", String)
 ], Product.prototype, "image", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ required: true, type: String }),
+    (0, mongoose_1.Prop)({ required: true, enum: product_model_1.CATEGORY_PRODUCT }),
     __metadata("design:type", String)
-], Product.prototype, "category_id", void 0);
+], Product.prototype, "category", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ required: true, type: Number, default: 0 }),
     __metadata("design:type", Number)

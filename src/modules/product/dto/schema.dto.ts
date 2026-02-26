@@ -1,4 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { CATEGORY_PRODUCT } from 'src/model/product.model';
 
 export type ProductDocument = Product & Document;
 
@@ -17,13 +18,10 @@ export class Product {
   description: string;
 
   @Prop({ required: true, type: String })
-  description_detail: string;
-
-  @Prop({ required: true, type: String })
   image: string;
 
-  @Prop({ required: true, type: String })
-  category_id: string;
+  @Prop({ required: true, enum: CATEGORY_PRODUCT })
+  category: string;
 
   @Prop({ required: true, type: Number, default: 0 })
   total_star: number;
