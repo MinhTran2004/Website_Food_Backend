@@ -12,6 +12,7 @@ import { UserModule } from './modules/user/user.module';
 import { PaymentModule } from './modules/payment/payment.module';
 import { AddressModule } from './modules/address/address.module';
 import { OrderModule } from './modules/order/order.module';
+import { MessageModule } from './modules/mesage/mesage.module';
 
 @Module({
   imports: [
@@ -57,6 +58,7 @@ import { OrderModule } from './modules/order/order.module';
     PaymentModule,
     AddressModule,
     OrderModule,
+    MessageModule,
   ],
   controllers: [AppController],
   providers: [AppService],

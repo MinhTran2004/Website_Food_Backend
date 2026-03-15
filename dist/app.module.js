@@ -21,6 +21,7 @@ const user_module_1 = require("./modules/user/user.module");
 const payment_module_1 = require("./modules/payment/payment.module");
 const address_module_1 = require("./modules/address/address.module");
 const order_module_1 = require("./modules/order/order.module");
+const mesage_module_1 = require("./modules/mesage/mesage.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -59,6 +60,7 @@ exports.AppModule = AppModule = __decorate([
             payment_module_1.PaymentModule,
             address_module_1.AddressModule,
             order_module_1.OrderModule,
+            mesage_module_1.MessageModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],

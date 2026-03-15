@@ -52,7 +52,6 @@ let ProductService = class ProductService {
         else if (options.price === 'MAX') {
             filter.price = { $gt: 150000 };
         }
-        console.log('filter', filter);
         const [items, total] = await Promise.all([
             this.productModel
                 .find(filter)
