@@ -34,8 +34,6 @@ let AddressService = class AddressService {
         const payload = { idUser: idUser, ...body };
         await this.addressModel.updateMany({ idUser: idUser }, { isDefault: false });
         const addressNew = await this.addressModel.create(payload);
-        if (!addressNew)
-            throw new common_1.ConflictException(error_1.Errors.CONFLICT('Create address new is failed'));
         return api_constant_1.HTTP_RESPONSE.CREATED('en', addressNew);
     }
     async getAddressByDefault(user) {
@@ -47,8 +45,6 @@ let AddressService = class AddressService {
             isDefault: true,
             isActive: true,
         });
-        if (!address)
-            throw new common_1.BadRequestException(error_1.Errors.BAD_REQUEST('No addresses have a default status.'));
         return api_constant_1.HTTP_RESPONSE.OK('en', address);
     }
     async getListAddress(quey, user) {

@@ -17,7 +17,7 @@ export interface IUser {
 }
 
 export enum PROVIDER {
-  NORMAL = 'NORMAL',
+  NORMAL = 'normal',
   GOOGLE = 'google',
   FACEBOOK = 'facebook',
 }

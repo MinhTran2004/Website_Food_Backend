@@ -13,12 +13,14 @@ const schema_dto_1 = require("./dto/schema.dto");
 const user_controller_1 = require("./user.controller");
 const user_service_1 = require("./user.service");
 const auth_module_1 = require("../auth/auth.module");
+const jwt_1 = require("@nestjs/jwt");
 let UserModule = class UserModule {
 };
 exports.UserModule = UserModule;
 exports.UserModule = UserModule = __decorate([
     (0, common_1.Module)({
         imports: [
+            jwt_1.JwtModule,
             (0, common_1.forwardRef)(() => auth_module_1.AuthModule),
             mongoose_1.MongooseModule.forFeature([
                 { name: schema_dto_1.User.name, schema: schema_dto_1.UserSchema },

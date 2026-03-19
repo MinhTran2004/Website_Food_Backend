@@ -51,11 +51,6 @@ export class AddressService {
 
     const addressNew = await this.addressModel.create(payload);
 
-    if (!addressNew)
-      throw new ConflictException(
-        Errors.CONFLICT('Create address new is failed'),
-      );
-
     return HTTP_RESPONSE.CREATED('en', addressNew);
   }
 
@@ -72,11 +67,6 @@ export class AddressService {
       isDefault: true,
       isActive: true,
     });
-
-    if (!address)
-      throw new BadRequestException(
-        Errors.BAD_REQUEST('No addresses have a default status.'),
-      );
 
     return HTTP_RESPONSE.OK('en', address);
   }

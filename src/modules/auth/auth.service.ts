@@ -5,7 +5,11 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable prettier/prettier */
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { HTTP_RESPONSE } from 'src/constants/api.constant';
@@ -15,160 +19,202 @@ import { OAuth2Client } from 'google-auth-library';
 import { IResponse } from 'src/model/api.model';
 import { Errors } from 'src/model/error';
 import { IResponseAuth, IUser } from 'src/model/user.modal';
-import { LoginFacebookRequestDto, LoginGoogleRequestDto, LoginRequestDto, RegisterRequestDto } from '../user/dto/request.dto';
+import {
+  LoginFacebookRequestDto,
+  LoginGoogleRequestDto,
+  LoginRequestDto,
+  RegisterRequestDto,
+} from '../user/dto/request.dto';
 import { UserService } from '../user/user.service';
 @Injectable()
 export class AuthService {
-    constructor(
-        private userService: UserService,
-        private jwtService: JwtService
-    ) { }
+  constructor(
+    private userService: UserService,
+    private jwtService: JwtService,
+  ) {}
 
-    async register(data: RegisterRequestDto): Promise<IResponse<IUser | null>> {
-        return HTTP_RESPONSE.CREATED('en', this.userService.create(data))
+  async register(data: RegisterRequestDto): Promise<IResponse<IUser | null>> {
+    return HTTP_RESPONSE.CREATED('en', this.userService.create(data));
+  }
+
+  async login(data: LoginRequestDto): Promise<IResponseAuth> {
+    const { email, password } = data;
+    // 1. Tìm user
+    const user = await this.userService.findByEmailForAuth(email);
+
+    if (!user) {
+      throw new UnauthorizedException(
+        Errors.UNAUTHORIZED('Email or password is incorrect'),
+      );
     }
 
-    async login(body: LoginRequestDto): Promise<IResponseAuth | null> {
-        const { email, password } = body;
+    // 2. So sánh password
+    const isMatch = await bcrypt.compare(password, user.password);
 
-        const user = await this.userService.findByEmailForAuth(email)
-
-        if (!user) return HTTP_RESPONSE.NOT_FOUND('en', 'User not found');
-
-        const match = await bcrypt.compare(password, user.password)
-
-        if (!match) HTTP_RESPONSE.BAD_REQUEST('en', 'Incorrect password')
-
-        const payload = { id: user._id, email: user.email };
-
-        return HTTP_RESPONSE.OK('en', {
-            accessToken: await this.jwtService.signAsync(payload),
-            user: {
-                id: user._id.toString(),
-                email: user.email,
-                username: user.username
-            }
-        })
+    if (!isMatch) {
+      throw new UnauthorizedException(
+        Errors.UNAUTHORIZED('Email or password is incorrect'),
+      );
     }
 
-    async loginGoogle(body: LoginGoogleRequestDto): Promise<IResponseAuth | null> {
-        const { accessToken, idToken, provider } = body;
+    // 3. Tạo JWT
+    const payload = {
+      id: user._id,
+      email: user.email,
+      username: user.username,
+      avatar: user.avatar,
+      provider: user.provider,
+    };
 
-        if (!idToken) throw new BadRequestException(Errors.BAD_REQUEST('idToken is empty'))
+    const accessToken = this.jwtService.sign(payload);
 
-        const tokenParts = idToken.split('.');
-        if (tokenParts.length !== 3) {
-            throw new BadRequestException(Errors.BAD_REQUEST('Invalid token format'));
-        }
+    // 4. Trả response
+    return HTTP_RESPONSE.OK('en', {
+      accessToken: accessToken,
+      user: user,
+    });
+  }
 
-        const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+  async loginGoogle(
+    body: LoginGoogleRequestDto,
+  ): Promise<IResponseAuth | null> {
+    const { idToken, provider } = body;
 
-        const ticket = await client.verifyIdToken({
-            idToken: idToken,
-            audience: process.env.GOOGLE_CLIENT_ID
-        })
+    if (!idToken)
+      throw new BadRequestException(Errors.BAD_REQUEST('idToken is empty'));
 
-        const payload = ticket.getPayload();
+    const tokenParts = idToken.split('.');
+    if (tokenParts.length !== 3) {
+      throw new BadRequestException(Errors.BAD_REQUEST('Invalid token format'));
+    }
 
-        if (!payload || !payload.name || !payload.email || !payload.picture) {
-            throw new BadRequestException(Errors.ITEM_NOT_FOUND('Name, Email, or Picture null data'));
-        }
+    const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
-        const { name, email, picture } = payload;
+    const ticket = await client.verifyIdToken({
+      idToken: idToken,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
 
-        const emailExisted = await this.userService.existsByEmail(email);
+    const payload = ticket.getPayload();
 
-        // if not account
-        if (!emailExisted) {
-            const res = await this.userService.createUserGoogle({ username: name, email: email, avatar: picture, provider: provider });
-            if (res.data) {
-                const user = {
-                    _id: res.data._id,
-                    email: res.data.email,
-                    username: res.data.username,
-                    avatar: res.data.avatar,
-                    provider: res.data.provider,
-                };
+    if (!payload || !payload.name || !payload.email || !payload.picture) {
+      throw new BadRequestException(
+        Errors.ITEM_NOT_FOUND('Name, Email, or Picture null data'),
+      );
+    }
 
-                return HTTP_RESPONSE.OK('en', {
-                    accessToken: await this.jwtService.signAsync(user),
-                    user: user
-                })
-            }
-            return null;
-        }
+    const { name, email, picture } = payload;
 
-        // if have a account
-        const data = await this.userService.findById(emailExisted._id.toString())
+    const emailExisted = await this.userService.existsByEmail(email);
 
+    // if not account
+    if (!emailExisted) {
+      const res = await this.userService.createUserGoogle({
+        username: name,
+        email: email,
+        avatar: picture,
+        provider: provider,
+      });
+      if (res.data) {
         const user = {
-            id: data?._id,
-            username: data?.username,
-            avatar: data?.avatar,
-            email: data?.email,
-            provider: data?.provider,
-        }
+          id: res.data._id,
+          email: res.data.email,
+          username: res.data.username,
+          avatar: res.data.avatar,
+          provider: res.data.provider,
+        };
 
         return HTTP_RESPONSE.OK('en', {
-            accessToken: await this.jwtService.signAsync(user),
-            user: user
-        })
-    }
-
-    async loginFacebook(body: LoginFacebookRequestDto): Promise<IResponseAuth | null> {
-        const { accessToken, provider } = body;
-
-        if (!accessToken) throw new BadRequestException(Errors.BAD_REQUEST('idToken is empty'))
-
-        const fbRes = await axios.get("https://graph.facebook.com/me", {
-            params: {
-                fields: "name,email,picture",
-                access_token: accessToken,
-            },
+          accessToken: await this.jwtService.signAsync(user),
+          user: user,
         });
+      }
+      return null;
+    }
 
-        if (!fbRes.data.name || !fbRes.data.email || !fbRes.data.picture.data.url) throw new BadRequestException(Errors.BAD_REQUEST('Name, Email, Picture is empty!'));
+    // if have a account
+    const data = await this.userService.findById(emailExisted._id.toString());
 
-        const { name, email, picture } = fbRes.data;
+    const user = {
+      id: data?._id,
+      username: data?.username,
+      avatar: data?.avatar,
+      email: data?.email,
+      provider: data?.provider,
+    };
 
-        const emailExisted = await this.userService.existsByEmail(email);
+    return HTTP_RESPONSE.OK('en', {
+      accessToken: await this.jwtService.signAsync(user),
+      user: user,
+    });
+  }
 
-        // // if not account
-        if (!emailExisted) {
-            const res = await this.userService.createUserFacebook({ username: name, email: email, avatar: picture.data.url, provider: provider });
+  async loginFacebook(
+    body: LoginFacebookRequestDto,
+  ): Promise<IResponseAuth | null> {
+    const { accessToken, provider } = body;
 
-            if (res.data) {
-                const user = {
-                    _id: res.data._id,
-                    email: res.data.email,
-                    username: res.data.username,
-                    avatar: res.data.avatar,
-                    provider: res.data.provider,
-                };
+    if (!accessToken)
+      throw new BadRequestException(Errors.BAD_REQUEST('idToken is empty'));
 
-                return HTTP_RESPONSE.OK('en', {
-                    accessToken: await this.jwtService.signAsync(user),
-                    user: user
-                })
-            }
-            return null;
-        }
+    const fbRes = await axios.get('https://graph.facebook.com/me', {
+      params: {
+        fields: 'name,email,picture',
+        access_token: accessToken,
+      },
+    });
 
-        // // if have a account
-        const data = await this.userService.findById(emailExisted._id.toString())
-        if (!data) throw new BadRequestException(Errors.BAD_REQUEST('Find user error!'))
+    if (!fbRes.data.name || !fbRes.data.email || !fbRes.data.picture.data.url)
+      throw new BadRequestException(
+        Errors.BAD_REQUEST('Name, Email, Picture is empty!'),
+      );
 
+    const { name, email, picture } = fbRes.data;
+
+    const emailExisted = await this.userService.existsByEmail(email);
+
+    // // if not account
+    if (!emailExisted) {
+      const res = await this.userService.createUserFacebook({
+        username: name,
+        email: email,
+        avatar: picture.data.url,
+        provider: provider,
+      });
+
+      if (res.data) {
         const user = {
-            id: data?._id,
-            username: data?.username,
-            avatar: data?.avatar,
-            email: data?.email,
-            provider: data?.provider,
-        }
+          id: res.data._id,
+          email: res.data.email,
+          username: res.data.username,
+          avatar: res.data.avatar,
+          provider: res.data.provider,
+        };
 
         return HTTP_RESPONSE.OK('en', {
-            accessToken: await this.jwtService.signAsync(user),
-            user: user
-        })
+          accessToken: await this.jwtService.signAsync(user),
+          user: user,
+        });
+      }
+      return null;
     }
+
+    // // if have a account
+    const data = await this.userService.findById(emailExisted._id.toString());
+    if (!data)
+      throw new BadRequestException(Errors.BAD_REQUEST('Find user error!'));
+
+    const user = {
+      id: data?._id,
+      username: data?.username,
+      avatar: data?.avatar,
+      email: data?.email,
+      provider: data?.provider,
+    };
+
+    return HTTP_RESPONSE.OK('en', {
+      accessToken: await this.jwtService.signAsync(user),
+      user: user,
+    });
+  }
 }

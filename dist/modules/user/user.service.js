@@ -47,17 +47,19 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserService = void 0;
 const common_1 = require("@nestjs/common");
+const jwt_1 = require("@nestjs/jwt");
 const mongoose_1 = require("@nestjs/mongoose");
 const bcrypt = __importStar(require("bcrypt"));
 const mongoose_2 = require("mongoose");
 const api_constant_1 = require("../../constants/api.constant");
 const error_1 = require("../../model/error");
-const user_modal_1 = require("../../model/user.modal");
 const schema_dto_1 = require("./dto/schema.dto");
 let UserService = class UserService {
     userModel;
-    constructor(userModel) {
+    jwtService;
+    constructor(userModel, jwtService) {
         this.userModel = userModel;
+        this.jwtService = jwtService;
     }
     async create(data) {
         const { password, ...account } = data;
@@ -73,11 +75,7 @@ let UserService = class UserService {
         });
         if (!userCreate)
             throw new common_1.BadRequestException('Create new user failure');
-        return api_constant_1.HTTP_RESPONSE.CREATED('en', this.userModel.create({
-            ...data,
-            password: passwordHash,
-            provider: user_modal_1.PROVIDER.NORMAL,
-        }));
+        return api_constant_1.HTTP_RESPONSE.CREATED('en', userCreate);
     }
     async get(user) {
         const { idUser } = user;
@@ -113,10 +111,43 @@ let UserService = class UserService {
             throw new common_1.BadRequestException(error_1.Errors.BAD_REQUEST('Create new user failure'));
         return api_constant_1.HTTP_RESPONSE.CREATED('en', user);
     }
+    async login(data) {
+        const { email, password } = data;
+        const user = await this.userModel.findOne({ email });
+        if (!user) {
+            throw new common_1.UnauthorizedException(error_1.Errors.UNAUTHORIZED('Email or password is incorrect'));
+        }
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            throw new common_1.UnauthorizedException(error_1.Errors.UNAUTHORIZED('Email or password is incorrect'));
+        }
+        const payload = {
+            sub: user._id,
+            email: user.email,
+        };
+        const accessToken = this.jwtService.sign(payload);
+        console.log({
+            accessToken: accessToken,
+            user: {
+                id: user._id.toString(),
+                email: user.email,
+                username: user.username,
+            },
+        });
+        return api_constant_1.HTTP_RESPONSE.OK('en', {
+            accessToken: accessToken,
+            user: {
+                id: user._id.toString(),
+                email: user.email,
+                username: user.username,
+            },
+        });
+    }
 };
 exports.UserService = UserService;
 exports.UserService = UserService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, mongoose_1.InjectModel)(schema_dto_1.User.name)),
-    __metadata("design:paramtypes", [mongoose_2.Model])
+    __metadata("design:paramtypes", [mongoose_2.Model,
+        jwt_1.JwtService])
 ], UserService);

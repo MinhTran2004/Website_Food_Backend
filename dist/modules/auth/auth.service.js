@@ -64,26 +64,31 @@ let AuthService = class AuthService {
     async register(data) {
         return api_constant_1.HTTP_RESPONSE.CREATED('en', this.userService.create(data));
     }
-    async login(body) {
-        const { email, password } = body;
+    async login(data) {
+        const { email, password } = data;
         const user = await this.userService.findByEmailForAuth(email);
-        if (!user)
-            return api_constant_1.HTTP_RESPONSE.NOT_FOUND('en', 'User not found');
-        const match = await bcrypt.compare(password, user.password);
-        if (!match)
-            api_constant_1.HTTP_RESPONSE.BAD_REQUEST('en', 'Incorrect password');
-        const payload = { id: user._id, email: user.email };
+        if (!user) {
+            throw new common_1.UnauthorizedException(error_1.Errors.UNAUTHORIZED('Email or password is incorrect'));
+        }
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            throw new common_1.UnauthorizedException(error_1.Errors.UNAUTHORIZED('Email or password is incorrect'));
+        }
+        const payload = {
+            id: user._id,
+            email: user.email,
+            username: user.username,
+            avatar: user.avatar,
+            provider: user.provider,
+        };
+        const accessToken = this.jwtService.sign(payload);
         return api_constant_1.HTTP_RESPONSE.OK('en', {
-            accessToken: await this.jwtService.signAsync(payload),
-            user: {
-                id: user._id.toString(),
-                email: user.email,
-                username: user.username
-            }
+            accessToken: accessToken,
+            user: user,
         });
     }
     async loginGoogle(body) {
-        const { accessToken, idToken, provider } = body;
+        const { idToken, provider } = body;
         if (!idToken)
             throw new common_1.BadRequestException(error_1.Errors.BAD_REQUEST('idToken is empty'));
         const tokenParts = idToken.split('.');
@@ -93,7 +98,7 @@ let AuthService = class AuthService {
         const client = new google_auth_library_1.OAuth2Client(process.env.GOOGLE_CLIENT_ID);
         const ticket = await client.verifyIdToken({
             idToken: idToken,
-            audience: process.env.GOOGLE_CLIENT_ID
+            audience: process.env.GOOGLE_CLIENT_ID,
         });
         const payload = ticket.getPayload();
         if (!payload || !payload.name || !payload.email || !payload.picture) {
@@ -102,10 +107,15 @@ let AuthService = class AuthService {
         const { name, email, picture } = payload;
         const emailExisted = await this.userService.existsByEmail(email);
         if (!emailExisted) {
-            const res = await this.userService.createUserGoogle({ username: name, email: email, avatar: picture, provider: provider });
+            const res = await this.userService.createUserGoogle({
+                username: name,
+                email: email,
+                avatar: picture,
+                provider: provider,
+            });
             if (res.data) {
                 const user = {
-                    _id: res.data._id,
+                    id: res.data._id,
                     email: res.data.email,
                     username: res.data.username,
                     avatar: res.data.avatar,
@@ -113,7 +123,7 @@ let AuthService = class AuthService {
                 };
                 return api_constant_1.HTTP_RESPONSE.OK('en', {
                     accessToken: await this.jwtService.signAsync(user),
-                    user: user
+                    user: user,
                 });
             }
             return null;
@@ -128,16 +138,16 @@ let AuthService = class AuthService {
         };
         return api_constant_1.HTTP_RESPONSE.OK('en', {
             accessToken: await this.jwtService.signAsync(user),
-            user: user
+            user: user,
         });
     }
     async loginFacebook(body) {
         const { accessToken, provider } = body;
         if (!accessToken)
             throw new common_1.BadRequestException(error_1.Errors.BAD_REQUEST('idToken is empty'));
-        const fbRes = await axios_1.default.get("https://graph.facebook.com/me", {
+        const fbRes = await axios_1.default.get('https://graph.facebook.com/me', {
             params: {
-                fields: "name,email,picture",
+                fields: 'name,email,picture',
                 access_token: accessToken,
             },
         });
@@ -146,10 +156,15 @@ let AuthService = class AuthService {
         const { name, email, picture } = fbRes.data;
         const emailExisted = await this.userService.existsByEmail(email);
         if (!emailExisted) {
-            const res = await this.userService.createUserFacebook({ username: name, email: email, avatar: picture.data.url, provider: provider });
+            const res = await this.userService.createUserFacebook({
+                username: name,
+                email: email,
+                avatar: picture.data.url,
+                provider: provider,
+            });
             if (res.data) {
                 const user = {
-                    _id: res.data._id,
+                    id: res.data._id,
                     email: res.data.email,
                     username: res.data.username,
                     avatar: res.data.avatar,
@@ -157,7 +172,7 @@ let AuthService = class AuthService {
                 };
                 return api_constant_1.HTTP_RESPONSE.OK('en', {
                     accessToken: await this.jwtService.signAsync(user),
-                    user: user
+                    user: user,
                 });
             }
             return null;
@@ -174,7 +189,7 @@ let AuthService = class AuthService {
         };
         return api_constant_1.HTTP_RESPONSE.OK('en', {
             accessToken: await this.jwtService.signAsync(user),
-            user: user
+            user: user,
         });
     }
 };
