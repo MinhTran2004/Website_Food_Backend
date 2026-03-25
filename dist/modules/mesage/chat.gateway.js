@@ -25,11 +25,7 @@ let ChatGateway = class ChatGateway {
     }
     async handleMessage(data, client) {
         const accessToken = client.handshake.auth.token;
-        const savedMessage = await this.messageService.create(data, accessToken);
-        this.server
-            .to(savedMessage.roomId.toString())
-            .emit('newMessage', savedMessage);
-        return savedMessage;
+        await this.messageService.create(data, accessToken);
     }
     async handleJoinRoom(roomId, client) {
         client.join(roomId);

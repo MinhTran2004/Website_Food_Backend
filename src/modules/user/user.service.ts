@@ -12,7 +12,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
 import { Model } from 'mongoose';
 import { HTTP_RESPONSE } from 'src/constants/api.constant';
-import { IResponse } from 'src/model/api.model';
+import { IResponse, IResponseListData } from 'src/model/api.model';
 import { BaseException, Errors } from 'src/model/error';
 import { IResponseAuth, IUser, IUserJWT } from 'src/model/user.modal';
 import { LoginRequestDto, RegisterRequestDto } from './dto/request.dto';
@@ -149,14 +149,6 @@ export class UserService {
     };
 
     const accessToken = this.jwtService.sign(payload);
-    console.log({
-      accessToken: accessToken,
-      user: {
-        id: user._id.toString(),
-        email: user.email,
-        username: user.username,
-      },
-    });
 
     // 4. Trả response
     return HTTP_RESPONSE.OK('en', {
@@ -166,6 +158,23 @@ export class UserService {
         email: user.email,
         username: user.username,
       },
+    });
+  }
+
+  async getListUserByUserName(
+    userName: string,
+    user: IUserJWT,
+  ): Promise<IResponseListData<IUser>> {
+    if (!userName)
+      throw new ConflictException(Errors.CONFLICT('userName is required'));
+
+    const users = await this.userModel.find({
+      username: { $regex: `^${userName}`, $options: 'i' },
+      _id: { $ne: user.idUser },
+    });
+
+    return HTTP_RESPONSE.OK('en', {
+      items: users,
     });
   }
 }

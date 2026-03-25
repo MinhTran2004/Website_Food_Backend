@@ -14,7 +14,6 @@ import { MessageService } from './mesage.service';
     origin: '*',
   },
 })
-
 export class ChatGateway {
   @WebSocketServer()
   server: Server;
@@ -24,15 +23,8 @@ export class ChatGateway {
     @MessageBody() data: any,
     @ConnectedSocket() client: Socket,
   ) {
-    
     const accessToken = client.handshake.auth.token;
-    const savedMessage = await this.messageService.create(data, accessToken);
-      
-    this.server
-      .to(savedMessage.roomId.toString())
-      .emit('newMessage', savedMessage);
-
-    return savedMessage;
+    await this.messageService.create(data, accessToken);
   }
 
   @SubscribeMessage('joinRoom')

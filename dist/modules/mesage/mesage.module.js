@@ -16,6 +16,7 @@ const schema_dto_1 = require("./dto/schema.dto");
 const mesage_controller_1 = require("./mesage.controller");
 const mesage_service_1 = require("./mesage.service");
 const auth_module_1 = require("../auth/auth.module");
+const chat_listener_1 = require("./chat.listener");
 let MessageModule = class MessageModule {
 };
 exports.MessageModule = MessageModule;
@@ -31,7 +32,7 @@ exports.MessageModule = MessageModule = __decorate([
             ]),
         ],
         controllers: [mesage_controller_1.MessageController],
-        providers: [mesage_service_1.MessageService, chat_gateway_1.ChatGateway],
+        providers: [mesage_service_1.MessageService, chat_gateway_1.ChatGateway, chat_listener_1.ChatListener],
         exports: [mesage_service_1.MessageService],
     })
 ], MessageModule);

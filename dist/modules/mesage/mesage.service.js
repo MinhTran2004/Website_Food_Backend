@@ -21,40 +21,79 @@ const api_constant_1 = require("../../constants/api.constant");
 const error_1 = require("../../model/error");
 const user_service_1 = require("../user/user.service");
 const schema_dto_1 = require("./dto/schema.dto");
+const event_emitter_1 = require("@nestjs/event-emitter");
 let MessageService = class MessageService {
     chatModel;
     messageModel;
     jwtService;
     userService;
-    constructor(chatModel, messageModel, jwtService, userService) {
+    eventEmitter;
+    constructor(chatModel, messageModel, jwtService, userService, eventEmitter) {
         this.chatModel = chatModel;
         this.messageModel = messageModel;
         this.jwtService = jwtService;
         this.userService = userService;
-    }
-    async findOrCreateRoom(userA, userB) {
-        const room = await this.chatModel.findOne({
-            members: { $all: [userA, userB] },
-        });
-        if (room)
-            return api_constant_1.HTTP_RESPONSE.OK('en', room);
-        const newRoom = await this.chatModel.create({
-            members: [userA, userB],
-        });
-        return api_constant_1.HTTP_RESPONSE.OK('en', newRoom);
+        this.eventEmitter = eventEmitter;
     }
     async create(data, accessToken) {
         const { receiverId, message } = data;
         if (!receiverId)
             throw new common_1.ConflictException(error_1.Errors.CONFLICT('receiverId is required'));
         const { id } = await this.jwtService.verify(accessToken);
-        const room = await this.findOrCreateRoom(id, receiverId);
-        const payload = {
-            roomId: room.data?._id,
-            senderId: id,
-            message,
-        };
-        return this.messageModel.create(payload);
+        const roomChat = await this.chatModel.findOne({
+            members: { $all: [id, receiverId] },
+        });
+        if (roomChat) {
+            const payloadNewMessage = {
+                roomId: roomChat._id,
+                senderId: id,
+                message: message,
+            };
+            const newMessage = await this.messageModel.create(payloadNewMessage);
+            const payload = {
+                room: roomChat,
+                message: newMessage,
+            };
+            this.eventEmitter.emit('chat.message', payload);
+            return newMessage;
+        }
+        else {
+            const payloadNewRoom = [id, receiverId];
+            const newRoom = await this.chatModel.create({ members: payloadNewRoom });
+            const payloadNewMessage = {
+                roomId: newRoom._id,
+                senderId: id,
+                message: message,
+            };
+            const newMessage = await this.messageModel.create(payloadNewMessage);
+            const payload = {
+                senderId: id,
+                receiverId: receiverId,
+                room: newRoom,
+                message: newMessage,
+            };
+            this.eventEmitter.emit('chat.reloadRooms', payload);
+            return newMessage;
+        }
+    }
+    async findOrCreateRoom(senderId, receiverId, message) {
+        const room = await this.chatModel.findOne({
+            members: { $all: [senderId, receiverId] },
+        });
+        if (room) {
+            const payload = {
+                message,
+                roomId: room?.id,
+                isFirstTime: false,
+                receiverId: receiverId,
+            };
+            this.eventEmitter.emit('chat.message', payload);
+            return api_constant_1.HTTP_RESPONSE.OK('en', room);
+        }
+        const newRoom = await this.chatModel.create({
+            members: [senderId, receiverId],
+        });
+        return api_constant_1.HTTP_RESPONSE.OK('en', newRoom);
     }
     async getRoom(idUser, senderId) {
         const room = await this.chatModel.findOne({
@@ -69,7 +108,7 @@ let MessageService = class MessageService {
             roomId: room.data?._id,
         });
         if (!user)
-            throw new common_1.ConflictException(error_1.Errors.CONFLICT("user is empty"));
+            throw new common_1.ConflictException(error_1.Errors.CONFLICT('user is empty'));
         const formatUser = { ...user.toObject(), _id: user?._id.toString() };
         const payload = {
             user: formatUser,
@@ -120,5 +159,6 @@ exports.MessageService = MessageService = __decorate([
     __metadata("design:paramtypes", [mongoose_2.Model,
         mongoose_2.Model,
         jwt_1.JwtService,
-        user_service_1.UserService])
+        user_service_1.UserService,
+        event_emitter_1.EventEmitter2])
 ], MessageService);

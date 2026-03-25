@@ -23,6 +23,6 @@ export enum PROVIDER {
 }
 
 export interface IUserJWT {
-    idUser: string;
-    email: string;
-  }
+  idUser: string;
+  email: string;
+}

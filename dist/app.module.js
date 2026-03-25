@@ -22,6 +22,7 @@ const payment_module_1 = require("./modules/payment/payment.module");
 const address_module_1 = require("./modules/address/address.module");
 const order_module_1 = require("./modules/order/order.module");
 const mesage_module_1 = require("./modules/mesage/mesage.module");
+const event_emitter_1 = require("@nestjs/event-emitter");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -50,6 +51,15 @@ exports.AppModule = AppModule = __decorate([
                         },
                     };
                 },
+            }),
+            event_emitter_1.EventEmitterModule.forRoot({
+                wildcard: false,
+                delimiter: '.',
+                newListener: false,
+                removeListener: false,
+                maxListeners: 10,
+                verboseMemoryLeak: false,
+                ignoreErrors: false,
             }),
             product_rate_module_1.ProductRateModule,
             product_module_1.ProductModule,

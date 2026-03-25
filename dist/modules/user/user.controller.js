@@ -26,6 +26,13 @@ let UserController = class UserController {
         const user = req.user;
         return this.userService.get(user);
     }
+    getListUserByUserName(userName, req) {
+        const user = req.user;
+        return this.userService.getListUserByUserName(userName, user);
+    }
+    getUserById(id) {
+        return this.userService.findById(id);
+    }
 };
 exports.UserController = UserController;
 __decorate([
@@ -36,6 +43,23 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], UserController.prototype, "get", null);
+__decorate([
+    (0, common_1.Get)('get-list-user-by-username'),
+    (0, swagger_1.ApiOperation)({ summary: 'Get list user' }),
+    __param(0, (0, common_1.Query)('userName')),
+    __param(1, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], UserController.prototype, "getListUserByUserName", null);
+__decorate([
+    (0, common_1.Get)(':id'),
+    (0, swagger_1.ApiOperation)({ summary: 'Get profile user' }),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], UserController.prototype, "getUserById", null);
 exports.UserController = UserController = __decorate([
     (0, swagger_1.ApiTags)('User'),
     (0, common_1.Controller)('user'),

@@ -8,6 +8,7 @@ import { Chat, ChatSchema, Message, MessageSchema } from './dto/schema.dto';
 import { MessageController } from './mesage.controller';
 import { MessageService } from './mesage.service';
 import { AuthModule } from '../auth/auth.module';
+import { ChatListener } from './chat.listener';
 
 @Module({
   imports: [
@@ -20,7 +21,7 @@ import { AuthModule } from '../auth/auth.module';
     ]),
   ],
   controllers: [MessageController],
-  providers: [MessageService, ChatGateway],
+  providers: [MessageService, ChatGateway, ChatListener],
   exports: [MessageService],
 })
 export class MessageModule {}

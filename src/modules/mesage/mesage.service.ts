@@ -6,6 +6,7 @@ import { HTTP_RESPONSE } from 'src/constants/api.constant';
 import { IResponse, IResponseListData } from 'src/model/api.model';
 import { Errors } from 'src/model/error';
 import {
+  IMessage,
   IMessageFirstRoom,
   IRoom,
   IRoomAndMessage,
@@ -13,6 +14,7 @@ import {
 import { UserService } from '../user/user.service';
 import { CreateChatRoomRequestDto } from './dto/request.dto';
 import { Chat, ChatDocument, Message, MessageDocument } from './dto/schema.dto';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class MessageService {
@@ -24,24 +26,8 @@ export class MessageService {
     private messageModel: Model<MessageDocument>,
     private jwtService: JwtService,
     private userService: UserService,
+    private eventEmitter: EventEmitter2,
   ) {}
-
-  async findOrCreateRoom(
-    userA: string,
-    userB: string,
-  ): Promise<IResponse<IRoom | null>> {
-    const room = await this.chatModel.findOne({
-      members: { $all: [userA, userB] },
-    });
-
-    if (room) return HTTP_RESPONSE.OK('en', room);
-
-    const newRoom = await this.chatModel.create({
-      members: [userA, userB],
-    });
-
-    return HTTP_RESPONSE.OK('en', newRoom);
-  }
 
   async create(data: CreateChatRoomRequestDto, accessToken: string) {
     const { receiverId, message } = data;
@@ -51,15 +37,74 @@ export class MessageService {
 
     const { id } = await this.jwtService.verify(accessToken);
 
-    const room = await this.findOrCreateRoom(id, receiverId);
+    const roomChat = await this.chatModel.findOne({
+      members: { $all: [id, receiverId] },
+    });
+    
+    if (roomChat) {
+      const payloadNewMessage = {
+        roomId: roomChat._id,
+        senderId: id,
+        message: message,
+      };
+      const newMessage = await this.messageModel.create(payloadNewMessage);
+      const payload = {
+        room: roomChat,
+        message: newMessage,
+      };
+      this.eventEmitter.emit('chat.message', payload);
 
-    const payload = {
-      roomId: room.data?._id,
-      senderId: id,
-      message,
-    };
+      return newMessage;
+    } else {
+      const payloadNewRoom = [id, receiverId];
+      const newRoom = await this.chatModel.create({ members: payloadNewRoom });
 
-    return this.messageModel.create(payload);
+      const payloadNewMessage = {
+        roomId: newRoom._id,
+        senderId: id,
+        message: message,
+      };
+
+      const newMessage = await this.messageModel.create(payloadNewMessage);
+
+      const payload = {
+        senderId: id,
+        receiverId: receiverId,
+        room: newRoom,
+        message: newMessage,
+      };
+
+      this.eventEmitter.emit('chat.reloadRooms', payload);
+
+      return newMessage;
+    }
+  }
+
+  async findOrCreateRoom(
+    senderId: string,
+    receiverId: string,
+    message: string,
+  ): Promise<IResponse<IRoom | null>> {
+    const room = await this.chatModel.findOne({
+      members: { $all: [senderId, receiverId] },
+    });
+
+    if (room) {
+      const payload = {
+        message,
+        roomId: room?.id,
+        isFirstTime: false,
+        receiverId: receiverId,
+      };
+      this.eventEmitter.emit('chat.message', payload);
+      return HTTP_RESPONSE.OK('en', room);
+    }
+
+    const newRoom = await this.chatModel.create({
+      members: [senderId, receiverId],
+    });
+
+    return HTTP_RESPONSE.OK('en', newRoom);
   }
 
   async getRoom(
@@ -83,16 +128,16 @@ export class MessageService {
       roomId: room.data?._id,
     });
 
-    if (!user) throw new ConflictException(Errors.CONFLICT("user is empty"));
+    if (!user) throw new ConflictException(Errors.CONFLICT('user is empty'));
 
-    const formatUser = { ...user.toObject(), _id: user?._id.toString()};
+    const formatUser = { ...user.toObject(), _id: user?._id.toString() };
 
     const payload: IRoomAndMessage = {
       user: formatUser,
       messages: messages,
       room: room.data,
     };
-    
+
     return HTTP_RESPONSE.OK('en', payload);
   }
 

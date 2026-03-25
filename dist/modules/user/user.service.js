@@ -126,14 +126,6 @@ let UserService = class UserService {
             email: user.email,
         };
         const accessToken = this.jwtService.sign(payload);
-        console.log({
-            accessToken: accessToken,
-            user: {
-                id: user._id.toString(),
-                email: user.email,
-                username: user.username,
-            },
-        });
         return api_constant_1.HTTP_RESPONSE.OK('en', {
             accessToken: accessToken,
             user: {
@@ -141,6 +133,17 @@ let UserService = class UserService {
                 email: user.email,
                 username: user.username,
             },
+        });
+    }
+    async getListUserByUserName(userName, user) {
+        if (!userName)
+            throw new common_1.ConflictException(error_1.Errors.CONFLICT('userName is required'));
+        const users = await this.userModel.find({
+            username: { $regex: `^${userName}`, $options: 'i' },
+            _id: { $ne: user.idUser },
+        });
+        return api_constant_1.HTTP_RESPONSE.OK('en', {
+            items: users,
         });
     }
 };
