@@ -74,16 +74,8 @@ let AuthService = class AuthService {
         if (!isMatch) {
             throw new common_1.UnauthorizedException(error_1.Errors.UNAUTHORIZED('Email or password is incorrect'));
         }
-        const payload = {
-            id: user._id,
-            email: user.email,
-            username: user.username,
-            avatar: user.avatar,
-            provider: user.provider,
-        };
-        const accessToken = this.jwtService.sign(payload);
         return api_constant_1.HTTP_RESPONSE.OK('en', {
-            accessToken: accessToken,
+            accessToken: this.jwtService.sign(user),
             user: user,
         });
     }
@@ -113,29 +105,16 @@ let AuthService = class AuthService {
                 avatar: picture,
                 provider: provider,
             });
-            if (res.data) {
-                const user = {
-                    id: res.data._id,
-                    email: res.data.email,
-                    username: res.data.username,
-                    avatar: res.data.avatar,
-                    provider: res.data.provider,
-                };
-                return api_constant_1.HTTP_RESPONSE.OK('en', {
-                    accessToken: await this.jwtService.signAsync(user),
-                    user: user,
-                });
-            }
-            return null;
+            if (!res.data)
+                throw new common_1.BadRequestException(error_1.Errors.ITEM_NOT_FOUND('The user does not exist.'));
+            return api_constant_1.HTTP_RESPONSE.OK('en', {
+                accessToken: await this.jwtService.signAsync(res.data),
+                user: res.data,
+            });
         }
-        const data = await this.userService.findById(emailExisted._id.toString());
-        const user = {
-            id: data?._id,
-            username: data?.username,
-            avatar: data?.avatar,
-            email: data?.email,
-            provider: data?.provider,
-        };
+        const user = await this.userService.findById(emailExisted._id.toString());
+        if (!user)
+            throw new common_1.BadRequestException(error_1.Errors.ITEM_NOT_FOUND('The user does not exist.'));
         return api_constant_1.HTTP_RESPONSE.OK('en', {
             accessToken: await this.jwtService.signAsync(user),
             user: user,
@@ -162,31 +141,16 @@ let AuthService = class AuthService {
                 avatar: picture.data.url,
                 provider: provider,
             });
-            if (res.data) {
-                const user = {
-                    id: res.data._id,
-                    email: res.data.email,
-                    username: res.data.username,
-                    avatar: res.data.avatar,
-                    provider: res.data.provider,
-                };
-                return api_constant_1.HTTP_RESPONSE.OK('en', {
-                    accessToken: await this.jwtService.signAsync(user),
-                    user: user,
-                });
-            }
-            return null;
+            if (!res.data)
+                throw new common_1.BadRequestException(error_1.Errors.ITEM_NOT_FOUND('The user does not exist.'));
+            return api_constant_1.HTTP_RESPONSE.OK('en', {
+                accessToken: await this.jwtService.signAsync(res.data),
+                user: res.data,
+            });
         }
-        const data = await this.userService.findById(emailExisted._id.toString());
-        if (!data)
-            throw new common_1.BadRequestException(error_1.Errors.BAD_REQUEST('Find user error!'));
-        const user = {
-            id: data?._id,
-            username: data?.username,
-            avatar: data?.avatar,
-            email: data?.email,
-            provider: data?.provider,
-        };
+        const user = await this.userService.findById(emailExisted._id.toString());
+        if (!user)
+            throw new common_1.BadRequestException(error_1.Errors.ITEM_NOT_FOUND('The user does not exist.'));
         return api_constant_1.HTTP_RESPONSE.OK('en', {
             accessToken: await this.jwtService.signAsync(user),
             user: user,

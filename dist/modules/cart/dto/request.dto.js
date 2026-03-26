@@ -9,8 +9,9 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.UpdateCartRequestDto = exports.CreateCartRequestDto = void 0;
+exports.CartProductRequestDto = exports.UpdateCartRequestDto = exports.CreateCartRequestDto = void 0;
 const swagger_1 = require("@nestjs/swagger");
+const request_dto_1 = require("../../product/dto/request.dto");
 class CreateCartRequestDto {
     idProduct;
     quantity;
@@ -37,3 +38,26 @@ __decorate([
     (0, swagger_1.ApiProperty)({ required: true, type: String }),
     __metadata("design:type", String)
 ], UpdateCartRequestDto.prototype, "idCart", void 0);
+class CartProductRequestDto {
+    idCart;
+    product;
+    quantity;
+    isActive;
+}
+exports.CartProductRequestDto = CartProductRequestDto;
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: true, type: String }),
+    __metadata("design:type", String)
+], CartProductRequestDto.prototype, "idCart", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: true, type: request_dto_1.ProductRequestDto }),
+    __metadata("design:type", request_dto_1.ProductRequestDto)
+], CartProductRequestDto.prototype, "product", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: true, type: Number }),
+    __metadata("design:type", Number)
+], CartProductRequestDto.prototype, "quantity", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ required: true, type: Boolean, default: true }),
+    __metadata("design:type", Boolean)
+], CartProductRequestDto.prototype, "isActive", void 0);

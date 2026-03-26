@@ -7,7 +7,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { IFilterOptions } from 'src/commom/api.dto';
 import { HTTP_RESPONSE } from 'src/constants/api.constant';
-import { IResponse, IResponseListData } from 'src/model/api.model';
+import { IResponseListData } from 'src/model/api.model';
 import { Errors } from 'src/model/error';
 import { IOrder } from 'src/model/order.model';
 import { IUserJWT } from 'src/model/user.modal';
@@ -15,6 +15,8 @@ import { CartService } from '../cart/cart.service';
 import { UserService } from '../user/user.service';
 import { CreateOrderRequestDto } from './dto/request.dto';
 import { Order, OrderDocument } from './dto/schema.dto';
+import { IProduct } from 'src/model/product.model';
+import { ProductRequestDto } from '../product/dto/request.dto';
 
 @Injectable()
 export class OrderService {
@@ -24,15 +26,12 @@ export class OrderService {
     private userService: UserService,
     private cartService: CartService,
   ) {}
-
-  async create(
-    body: CreateOrderRequestDto,
-    user: IUserJWT,
-  ): Promise<IResponse<IOrder | null>> {
-    const { address, paymentMethods, products, total } = body;
+  // : Promise<IResponse<IOrder | null>>
+  async create(body: CreateOrderRequestDto, user: IUserJWT) {
+    const { address, paymentMethods, cartProducts, total } = body;
     const { idUser } = user;
 
-    if (!address._id || !paymentMethods || !products || !total || !idUser)
+    if (!address._id || !paymentMethods || !cartProducts || !total || !idUser)
       throw new BadRequestException(
         Errors.BAD_REQUEST(
           'idAddress, method, product, total, idUser is required',
@@ -44,37 +43,38 @@ export class OrderService {
     if (!userExists)
       throw new NotFoundException(Errors.ITEM_NOT_FOUND('user is not found'));
 
-    if (products.length === 0) {
+    if (cartProducts.length === 0) {
       throw new BadRequestException(Errors.BAD_REQUEST('Minimum 1 product'));
     }
 
+    const products: ProductRequestDto[] = cartProducts.map((item) => {
+      return item.product;
+    });
+
     const payload: IOrder = {
-      user: {
-        ...userExists,
-        _id: userExists._id.toString(),
-      },
+      user: userExists,
       address: body.address,
       paymentMethods: body.paymentMethods,
-      products: body.products,
+      products,
       total: body.total,
     };
 
-    const order = await this.orderModel.create(payload);
+    // const order = await this.orderModel.create(payload);
 
-    const productIds = body.products
-      .map((item) => item._id)
-      .filter((id): id is string => Boolean(id));
+    // const productIds = body.products
+    //   .map((item) => item._id)
+    //   .filter((id): id is string => Boolean(id));
 
-    const hiddenCart = await this.cartService.patchMany(productIds, {
-      isActive: false,
-    });
+    // const hiddenCart = await this.cartService.patchMany(productIds, {
+    //   isActive: false,
+    // });
 
-    if (!hiddenCart)
-      throw new BadRequestException(
-        Errors.BAD_REQUEST('Remove product in cart failure'),
-      );
+    // if (!hiddenCart)
+    //   throw new BadRequestException(
+    //     Errors.BAD_REQUEST('Remove product in cart failure'),
+    //   );
 
-    return HTTP_RESPONSE.CREATED('en', order);
+    // return HTTP_RESPONSE.CREATED('en', order);
   }
 
   async getListOrder(

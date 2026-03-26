@@ -11,19 +11,22 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ProductOrderRequest = exports.CreateOrderRequestDto = void 0;
 const swagger_1 = require("@nestjs/swagger");
+const class_validator_1 = require("class-validator");
 const order_model_1 = require("../../../model/order.model");
 const request_dto_1 = require("../../address/dto/request.dto");
+const request_dto_2 = require("../../cart/dto/request.dto");
 class CreateOrderRequestDto {
-    products;
+    cartProducts;
     address;
     total;
     paymentMethods;
 }
 exports.CreateOrderRequestDto = CreateOrderRequestDto;
 __decorate([
-    (0, swagger_1.ApiProperty)({ required: true, type: Array }),
+    (0, swagger_1.ApiProperty)({ required: true, type: [request_dto_2.CartProductRequestDto] }),
+    (0, class_validator_1.IsArray)(),
     __metadata("design:type", Array)
-], CreateOrderRequestDto.prototype, "products", void 0);
+], CreateOrderRequestDto.prototype, "cartProducts", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({ required: true, type: request_dto_1.UpdateAddressRequestDto }),
     __metadata("design:type", Object)

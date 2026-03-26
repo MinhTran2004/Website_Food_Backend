@@ -31,36 +31,26 @@ let OrderService = class OrderService {
         this.cartService = cartService;
     }
     async create(body, user) {
-        const { address, paymentMethods, products, total } = body;
+        const { address, paymentMethods, cartProducts, total } = body;
         const { idUser } = user;
-        if (!address._id || !paymentMethods || !products || !total || !idUser)
+        if (!address._id || !paymentMethods || !cartProducts || !total || !idUser)
             throw new common_1.BadRequestException(error_1.Errors.BAD_REQUEST('idAddress, method, product, total, idUser is required'));
         const userExists = await this.userService.findById(idUser);
         if (!userExists)
             throw new common_1.NotFoundException(error_1.Errors.ITEM_NOT_FOUND('user is not found'));
-        if (products.length === 0) {
+        if (cartProducts.length === 0) {
             throw new common_1.BadRequestException(error_1.Errors.BAD_REQUEST('Minimum 1 product'));
         }
+        const products = cartProducts.map((item) => {
+            return item.product;
+        });
         const payload = {
-            user: {
-                ...userExists,
-                _id: userExists._id.toString(),
-            },
+            user: userExists,
             address: body.address,
             paymentMethods: body.paymentMethods,
-            products: body.products,
+            products,
             total: body.total,
         };
-        const order = await this.orderModel.create(payload);
-        const productIds = body.products
-            .map((item) => item._id)
-            .filter((id) => Boolean(id));
-        const hiddenCart = await this.cartService.patchMany(productIds, {
-            isActive: false,
-        });
-        if (!hiddenCart)
-            throw new common_1.BadRequestException(error_1.Errors.BAD_REQUEST('Remove product in cart failure'));
-        return api_constant_1.HTTP_RESPONSE.CREATED('en', order);
     }
     async getListOrder(options, user) {
         const { idUser } = user;

@@ -39,7 +39,7 @@ export class AuthService {
 
   async login(data: LoginRequestDto): Promise<IResponseAuth> {
     const { email, password } = data;
-    // 1. Tìm user
+
     const user = await this.userService.findByEmailForAuth(email);
 
     if (!user) {
@@ -48,7 +48,6 @@ export class AuthService {
       );
     }
 
-    // 2. So sánh password
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
@@ -57,20 +56,8 @@ export class AuthService {
       );
     }
 
-    // 3. Tạo JWT
-    const payload = {
-      id: user._id,
-      email: user.email,
-      username: user.username,
-      avatar: user.avatar,
-      provider: user.provider,
-    };
-
-    const accessToken = this.jwtService.sign(payload);
-
-    // 4. Trả response
     return HTTP_RESPONSE.OK('en', {
-      accessToken: accessToken,
+      accessToken: this.jwtService.sign(user),
       user: user,
     });
   }
@@ -115,38 +102,25 @@ export class AuthService {
         avatar: picture,
         provider: provider,
       });
-      if (res.data) {
-        const user = {
-          id: res.data._id,
-          email: res.data.email,
-          username: res.data.username,
-          avatar: res.data.avatar,
-          provider: res.data.provider,
-        };
+      if (!res.data)
+        throw new BadRequestException(Errors.ITEM_NOT_FOUND('The user does not exist.'));
 
         return HTTP_RESPONSE.OK('en', {
-          accessToken: await this.jwtService.signAsync(user),
-          user: user,
+          accessToken: await this.jwtService.signAsync(res.data),
+          user: res.data,
         });
-      }
-      return null;
     }
 
     // if have a account
-    const data = await this.userService.findById(emailExisted._id.toString());
+    const user = await this.userService.findById(emailExisted._id.toString());
 
-    const user = {
-      id: data?._id,
-      username: data?.username,
-      avatar: data?.avatar,
-      email: data?.email,
-      provider: data?.provider,
-    };
+    if (!user)
+      throw new BadRequestException(Errors.ITEM_NOT_FOUND('The user does not exist.'));
 
-    return HTTP_RESPONSE.OK('en', {
-      accessToken: await this.jwtService.signAsync(user),
-      user: user,
-    });
+      return HTTP_RESPONSE.OK('en', {
+        accessToken: await this.jwtService.signAsync(user),
+        user: user,
+      });
   }
 
   async loginFacebook(
@@ -181,36 +155,19 @@ export class AuthService {
         avatar: picture.data.url,
         provider: provider,
       });
-
-      if (res.data) {
-        const user = {
-          id: res.data._id,
-          email: res.data.email,
-          username: res.data.username,
-          avatar: res.data.avatar,
-          provider: res.data.provider,
-        };
+      if (!res.data)
+        throw new BadRequestException(Errors.ITEM_NOT_FOUND('The user does not exist.'));
 
         return HTTP_RESPONSE.OK('en', {
-          accessToken: await this.jwtService.signAsync(user),
-          user: user,
+          accessToken: await this.jwtService.signAsync(res.data),
+          user: res.data,
         });
-      }
-      return null;
     }
 
     // // if have a account
-    const data = await this.userService.findById(emailExisted._id.toString());
-    if (!data)
-      throw new BadRequestException(Errors.BAD_REQUEST('Find user error!'));
-
-    const user = {
-      id: data?._id,
-      username: data?.username,
-      avatar: data?.avatar,
-      email: data?.email,
-      provider: data?.provider,
-    };
+    const user = await this.userService.findById(emailExisted._id.toString());
+    if (!user)
+      throw new BadRequestException(Errors.ITEM_NOT_FOUND('The user does not exist.'));
 
     return HTTP_RESPONSE.OK('en', {
       accessToken: await this.jwtService.signAsync(user),

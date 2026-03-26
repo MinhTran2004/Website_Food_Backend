@@ -3,6 +3,19 @@ import { CATEGORY_PRODUCT } from 'src/model/product.model';
 
 export type ProductDocument = Product & Document;
 
+export class ProductStar {
+  @Prop({ required: true, type: Number, default: 0 })
+  star1: number;
+  @Prop({ required: true, type: Number, default: 0 })
+  star2: number;
+  @Prop({ required: true, type: Number, default: 0 })
+  star3: number;
+  @Prop({ required: true, type: Number, default: 0 })
+  star4: number;
+  @Prop({ required: true, type: Number, default: 0 })
+  star5: number;
+}
+
 @Schema({ timestamps: true })
 export class Product {
   @Prop({ required: true, type: String })
@@ -29,28 +42,16 @@ export class Product {
   @Prop({
     required: true,
     _id: false,
-    type: {
-      star1: { type: Number, default: 0 },
-      star2: { type: Number, default: 0 },
-      star3: { type: Number, default: 0 },
-      star4: { type: Number, default: 0 },
-      star5: { type: Number, default: 0 },
-    },
-    default: {
+    type: ProductStar,
+    default: () => ({
       star1: 0,
       star2: 0,
       star3: 0,
       star4: 0,
       star5: 0,
-    },
+    }),
   })
-  rates: {
-    star1: number;
-    star2: number;
-    star3: number;
-    star4: number;
-    star5: number;
-  };
+  rates: ProductStar;
 
   @Prop({ required: true, type: Boolean, default: true })
   isActive: boolean;

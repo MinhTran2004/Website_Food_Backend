@@ -1,39 +1,30 @@
 /* eslint-disable prettier/prettier */
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import mongoose from 'mongoose';
 import { METHOD_PAYMENT } from 'src/model/order.model';
 import { Address } from 'src/modules/address/dto/schema.dto';
 import { ProductRequestDto } from 'src/modules/product/dto/request.dto';
+import { User, UserInfo } from 'src/modules/user/dto/schema.dto';
 
 export type OrderDocument = Order & Document;
 @Schema({ timestamps: true })
 export class Order {
   @Prop({
     required: true,
-    type: {
-      _id: String,
-      email: String,
-      username: String,
-      provider: String,
-      avatar: String,
-    },
+    type: mongoose.Schema.Types.ObjectId,
+    ref: User.name,
   })
-  user: {
-    _id: string,
-    email: string;
-    username: string;
-    provider: string;
-    avatar: string;
-  };
+  user: UserInfo;
 
   @Prop({
     required: true,
-    type: ProductRequestDto
+    type: ProductRequestDto,
   })
   products: ProductRequestDto[];
 
   @Prop({
     required: true,
-    type: Address
+    type: Address,
   })
   address: Address;
 

@@ -57,6 +57,11 @@ class ProductRequestDto extends CreateProductRequestDto {
     _id;
 }
 exports.ProductRequestDto = ProductRequestDto;
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", String)
+], ProductRequestDto.prototype, "_id", void 0);
 class FilterProductDto extends api_dto_1.IFilterOptions {
     category;
     price;

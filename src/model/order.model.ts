@@ -1,5 +1,5 @@
+import { ProductRequestDto } from 'src/modules/product/dto/request.dto';
 import { IAddress } from './address.module';
-import { ICart } from './cart.model';
 import { IProduct } from './product.model';
 import { IUser } from './user.modal';
 
@@ -9,9 +9,8 @@ export enum METHOD_PAYMENT {
 }
 
 export interface IOrder {
-  _id?: string;
   user: IUser;
-  products: IOrderProduct[];
+  products: ProductRequestDto[];
   address: IAddress;
   total: number;
   paymentMethods: METHOD_PAYMENT;
@@ -20,7 +19,3 @@ export interface IOrder {
 export interface IOrderProduct extends IOrder { 
   product: IProduct
 }
-
-// export interface IOrderProduct extends IProduct {
-//   quantity: number;
-// }

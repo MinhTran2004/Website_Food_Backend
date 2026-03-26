@@ -9,9 +9,37 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ProductSchema = exports.Product = void 0;
+exports.ProductSchema = exports.Product = exports.ProductStar = void 0;
 const mongoose_1 = require("@nestjs/mongoose");
 const product_model_1 = require("../../../model/product.model");
+class ProductStar {
+    star1;
+    star2;
+    star3;
+    star4;
+    star5;
+}
+exports.ProductStar = ProductStar;
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, type: Number, default: 0 }),
+    __metadata("design:type", Number)
+], ProductStar.prototype, "star1", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, type: Number, default: 0 }),
+    __metadata("design:type", Number)
+], ProductStar.prototype, "star2", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, type: Number, default: 0 }),
+    __metadata("design:type", Number)
+], ProductStar.prototype, "star3", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, type: Number, default: 0 }),
+    __metadata("design:type", Number)
+], ProductStar.prototype, "star4", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true, type: Number, default: 0 }),
+    __metadata("design:type", Number)
+], ProductStar.prototype, "star5", void 0);
 let Product = class Product {
     name;
     price;
@@ -56,22 +84,16 @@ __decorate([
     (0, mongoose_1.Prop)({
         required: true,
         _id: false,
-        type: {
-            star1: { type: Number, default: 0 },
-            star2: { type: Number, default: 0 },
-            star3: { type: Number, default: 0 },
-            star4: { type: Number, default: 0 },
-            star5: { type: Number, default: 0 },
-        },
-        default: {
+        type: ProductStar,
+        default: () => ({
             star1: 0,
             star2: 0,
             star3: 0,
             star4: 0,
             star5: 0,
-        },
+        }),
     }),
-    __metadata("design:type", Object)
+    __metadata("design:type", ProductStar)
 ], Product.prototype, "rates", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ required: true, type: Boolean, default: true }),
