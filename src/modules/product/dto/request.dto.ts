@@ -33,7 +33,7 @@ export class CreateProductRequestDto {
 export class ProductRequestDto extends CreateProductRequestDto {
   @ApiProperty()
   @IsNotEmpty()
-  _id: string;
+  id: string;
 }
 
 export class FilterProductDto extends IFilterOptions {

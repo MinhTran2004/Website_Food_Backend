@@ -3,35 +3,33 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { IFilterOptions } from 'src/commom/api.dto';
-import { HTTP_RESPONSE } from 'src/constants/api.constant';
-import { IResponseListData } from 'src/model/api.model';
-import { Errors } from 'src/model/error';
-import { IOrder } from 'src/model/order.model';
-import { IUserJWT } from 'src/model/user.modal';
+import { PrismaService } from '../../../prisma/prisma.service';
+import { IFilterOptions } from '../../commom/api.dto';
+import { HTTP_RESPONSE } from '../../constants/api.constant';
+import { IResponse, IResponseListData } from '../../model/api.model';
+import { Errors } from '../../model/error';
+import { IOrder } from '../../model/order.model';
+import { IUserJWT } from '../../model/user.modal';
 import { CartService } from '../cart/cart.service';
 import { UserService } from '../user/user.service';
 import { CreateOrderRequestDto } from './dto/request.dto';
-import { Order, OrderDocument } from './dto/schema.dto';
-import { IProduct } from 'src/model/product.model';
-import { ProductRequestDto } from '../product/dto/request.dto';
 
 @Injectable()
 export class OrderService {
   constructor(
-    @InjectModel(Order.name)
-    private orderModel: Model<OrderDocument>,
+    private prisma: PrismaService,
     private userService: UserService,
     private cartService: CartService,
   ) {}
-  // : Promise<IResponse<IOrder | null>>
-  async create(body: CreateOrderRequestDto, user: IUserJWT) {
-    const { address, paymentMethods, cartProducts, total } = body;
+
+  async create(
+    body: CreateOrderRequestDto,
+    user: IUserJWT,
+  ): Promise<IResponse<IOrder | null>> {
+    const { address, paymentMethods, cartItems, total } = body;
     const { idUser } = user;
 
-    if (!address._id || !paymentMethods || !cartProducts || !total || !idUser)
+    if (!address || !paymentMethods || !cartItems || !total || !idUser)
       throw new BadRequestException(
         Errors.BAD_REQUEST(
           'idAddress, method, product, total, idUser is required',
@@ -43,38 +41,43 @@ export class OrderService {
     if (!userExists)
       throw new NotFoundException(Errors.ITEM_NOT_FOUND('user is not found'));
 
-    if (cartProducts.length === 0) {
+    if (cartItems.length === 0) {
       throw new BadRequestException(Errors.BAD_REQUEST('Minimum 1 product'));
     }
-
-    const products: ProductRequestDto[] = cartProducts.map((item) => {
-      return item.product;
-    });
-
-    const payload: IOrder = {
+    
+    const payload = {
+      idUser: userExists.id,
       user: userExists,
-      address: body.address,
+      address: { ...body.address },
       paymentMethods: body.paymentMethods,
-      products,
+      cartItems: cartItems.map((item) => ({
+        id: item.id,
+        idCart: item.idCart,
+        quantity: item.quantity,
+        isActive: item.isActive,
+        product: {
+          ...item.product,
+        },
+      })),
       total: body.total,
     };
 
-    // const order = await this.orderModel.create(payload);
+    const order = await this.prisma.order.create({ data: payload });
 
-    // const productIds = body.products
-    //   .map((item) => item._id)
-    //   .filter((id): id is string => Boolean(id));
+    const productIds = body.cartItems
+      .map((item) => item.id)
+      .filter((id): id is string => Boolean(id));
 
-    // const hiddenCart = await this.cartService.patchMany(productIds, {
-    //   isActive: false,
-    // });
+    const hiddenCart = await this.cartService.patchMany(productIds, {
+      isActive: false,
+    });
 
-    // if (!hiddenCart)
-    //   throw new BadRequestException(
-    //     Errors.BAD_REQUEST('Remove product in cart failure'),
-    //   );
+    if (!hiddenCart)
+      throw new BadRequestException(
+        Errors.BAD_REQUEST('Remove product in cart failure'),
+      );
 
-    // return HTTP_RESPONSE.CREATED('en', order);
+    return HTTP_RESPONSE.CREATED('en', order);
   }
 
   async getListOrder(
@@ -93,13 +96,13 @@ export class OrderService {
       throw new NotFoundException(Errors.ITEM_NOT_FOUND('User is not found'));
 
     const [items, total] = await Promise.all([
-      this.orderModel
-        .find({ 'user._id': idUser })
-        .skip(skip)
-        .limit(pageSize)
-        .sort({ createAt: -1 })
-        .lean(),
-      this.orderModel.countDocuments({ 'user._id': idUser }),
+      this.prisma.order.findMany({
+        where: { idUser },
+        skip,
+        take: pageSize,
+        orderBy: [{ createdAt: 'desc' }],
+      }),
+      this.prisma.order.count({ where: { idUser } }),
     ]);
 
     const totalPage = Math.ceil(total / pageSize);
@@ -120,6 +123,6 @@ export class OrderService {
   }
 
   async findById(id: string) {
-    return this.orderModel.findById(id);
+    return this.prisma.order.findUnique({ where: { id } });
   }
 }

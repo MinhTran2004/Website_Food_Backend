@@ -6,6 +6,7 @@ import { CartService } from './cart.service';
 import { Cart, CartSchema } from './dto/schema.dto';
 import { UserModule } from '../user/user.module';
 import { ProductModule } from '../product/product.module';
+import { PrismaService } from 'prisma/prisma.service';
 
 @Module({
   imports: [
@@ -14,7 +15,7 @@ import { ProductModule } from '../product/product.module';
     MongooseModule.forFeature([{ name: Cart.name, schema: CartSchema }]),
   ],
   controllers: [CartController],
-  providers: [CartService],
+  providers: [CartService, PrismaService],
   exports: [CartService],
 })
 export class CartModule {}

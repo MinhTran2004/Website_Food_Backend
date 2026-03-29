@@ -17,7 +17,10 @@ export class UpdateCartRequestDto extends CreateCartRequestDto {
   idCart: string;
 }
 
-export class CartProductRequestDto {
+export class CartItem {
+  @ApiProperty({ required: true, type: String })
+  id: string;
+
   @ApiProperty({ required: true, type: String })
   idCart: string;
 

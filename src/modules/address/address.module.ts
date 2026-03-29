@@ -4,6 +4,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { AddressController } from './address.controller';
 import { AddressService } from './address.service';
 import { Address, AddressSchema } from './dto/schema.dto';
+import { PrismaService } from 'prisma/prisma.service';
 
 @Module({
   imports: [
@@ -12,7 +13,7 @@ import { Address, AddressSchema } from './dto/schema.dto';
     ]),
   ],
   controllers: [AddressController],
-  providers: [AddressService],
+  providers: [AddressService, PrismaService],
   exports: [AddressService]
 })
 export class AddressModule { }

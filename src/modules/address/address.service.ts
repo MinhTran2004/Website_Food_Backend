@@ -1,10 +1,9 @@
 import {
   BadRequestException,
   Injectable,
-  NotFoundException
+  NotFoundException,
 } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { PrismaService } from 'prisma/prisma.service';
 import { IFilterOptions } from 'src/commom/api.dto';
 import { HTTP_RESPONSE } from 'src/constants/api.constant';
 import { IAddress } from 'src/model/address.module';
@@ -15,14 +14,10 @@ import {
   CreateAddressRequestDto,
   UpdateAddressRequestDto,
 } from './dto/request.dto';
-import { Address, AddressDocument } from './dto/schema.dto';
 
 @Injectable()
 export class AddressService {
-  constructor(
-    @InjectModel(Address.name)
-    private addressModel: Model<AddressDocument>,
-  ) {}
+  constructor(private prisma: PrismaService) {}
 
   async create(
     body: CreateAddressRequestDto,
@@ -43,12 +38,14 @@ export class AddressService {
 
     const payload = { idUser: idUser, ...body };
 
-    await this.addressModel.updateMany(
-      { idUser: idUser },
-      { isDefault: false },
-    );
+    await this.prisma.address.updateMany({
+      data: { isDefault: false },
+      where: {
+        idUser: idUser,
+      },
+    });
 
-    const addressNew = await this.addressModel.create(payload);
+    const addressNew = await this.prisma.address.create({ data: payload });
 
     return HTTP_RESPONSE.CREATED('en', addressNew);
   }
@@ -61,10 +58,12 @@ export class AddressService {
     if (!idUser)
       throw new NotFoundException(Errors.ITEM_NOT_FOUND('User is not found'));
 
-    const address = await this.addressModel.findOne({
-      idUser: idUser,
-      isDefault: true,
-      isActive: true,
+    const address = await this.prisma.address.findFirst({
+      where: {
+        idUser: idUser,
+        isDefault: true,
+        isActive: true,
+      },
     });
 
     return HTTP_RESPONSE.OK('en', address);
@@ -84,13 +83,23 @@ export class AddressService {
       throw new BadRequestException(Errors.BAD_REQUEST('idUser is required'));
 
     const [items, total] = await Promise.all([
-      this.addressModel
-        .find({ idUser: idUser, isActive: true })
-        .skip(skip)
-        .limit(pageSize)
-        .sort({ createAt: -1, default: -1 })
-        .lean(),
-      this.addressModel.countDocuments({ isActive: true }),
+      this.prisma.address.findMany({
+        where: { idUser: idUser, isActive: true },
+        skip,
+        take: pageSize,
+        orderBy: [
+          {
+            isDefault: 'desc',
+          },
+          { createdAt: 'desc' },
+        ],
+      }),
+      this.prisma.address.count({
+        where: {
+          isActive: true,
+          idUser: idUser,
+        },
+      }),
     ]);
 
     const totalPage = Math.ceil(total / pageSize);
@@ -114,29 +123,22 @@ export class AddressService {
     body: UpdateAddressRequestDto,
     user: IUserJWT,
   ): Promise<IResponse<IAddress | null>> {
-    const {
-      _id,
-      nameAddress,
-      addressDetail,
-      city,
-      district,
-      phone,
-      isDefault,
-    } = body;
+    const { id, nameAddress, addressDetail, city, district, phone } = body;
+    const { id: idAddres, ...data } = body;
+
     const { idUser } = user;
 
     if (
-      !_id ||
+      !idAddres ||
       !nameAddress ||
       !addressDetail ||
       !city ||
       !district ||
-      !phone ||
-      !isDefault
+      !phone
     )
       throw new BadRequestException(
         Errors.BAD_REQUEST(
-          'anameAddress, addressDetail, city, district, phone, isDefault is required',
+          'nanameAddress, addressDetail, city, district, phone is required',
         ),
       );
 
@@ -144,18 +146,26 @@ export class AddressService {
       throw new NotFoundException(Errors.ITEM_NOT_FOUND('User is not found'));
 
     if (body.isDefault === true) {
-      await this.addressModel.updateMany(
-        { idUser: idUser },
-        { isDefault: false },
-      );
+      await this.prisma.address.updateMany({
+        data: {
+          isDefault: false,
+        },
+        where: {
+          idUser,
+          NOT: { id: idAddres },
+        },
+      });
     }
 
-    const address = await this.addressModel.findByIdAndUpdate(_id, body);
+    const address = await this.prisma.address.update({
+      data: { ...data },
+      where: { idUser, id:idAddres },
+    });
 
     return HTTP_RESPONSE.OK('en', address);
   }
 
   async delete(id: string) {
-    return await this.addressModel.findByIdAndDelete(id);
+    return await this.prisma.address.delete({ where: { id } });
   }
 }

@@ -130,10 +130,10 @@ export class MessageService {
 
     if (!user) throw new ConflictException(Errors.CONFLICT('user is empty'));
 
-    const formatUser = { ...user.toObject(), _id: user?._id.toString() };
+    // const formatUser = { _id: user?.id.toString(), ...user.toObject() };
 
     const payload: IRoomAndMessage = {
-      user: formatUser,
+      user: user,
       messages: messages,
       room: room.data,
     };
@@ -163,7 +163,7 @@ export class MessageService {
         const user = await this.userService.findById(item);
 
         if (user) {
-          const room = await this.getRoom(idUser, user._id.toString());
+          const room = await this.getRoom(idUser, user.id.toString());
           const lastChat = await this.messageModel
             .findOne({
               roomId: room.data?._id,
