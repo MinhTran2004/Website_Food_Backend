@@ -6,6 +6,7 @@ import { Order, OrderSchema } from './dto/schema.dto';
 import { OrderController } from './order.controller';
 import { OrderService } from './order.service';
 import { CartModule } from '../cart/cart.module';
+import { PrismaService } from 'prisma/prisma.service';
 
 @Module({
   imports: [
@@ -14,7 +15,7 @@ import { CartModule } from '../cart/cart.module';
     MongooseModule.forFeature([{ name: Order.name, schema: OrderSchema }]),
   ],
   controllers: [OrderController],
-  providers: [OrderService],
+  providers: [OrderService, PrismaService],
   exports: [OrderService],
 })
 export class OrderModule {}

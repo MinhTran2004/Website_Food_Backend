@@ -25,7 +25,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
-        const uri = configService.get<string>('MONGODB_CONFIG');
+        const uri = configService.get<string>('DATABASE_URL');
 
         return {
           uri,

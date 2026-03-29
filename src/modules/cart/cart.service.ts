@@ -4,8 +4,8 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import mongoose, { Model } from 'mongoose';
+import mongoose from 'mongoose';
+import { PrismaService } from 'prisma/prisma.service';
 import { IFilterOptions } from 'src/commom/api.dto';
 import { HTTP_RESPONSE } from 'src/constants/api.constant';
 import { IResponse, IResponseListData } from 'src/model/api.model';
@@ -15,13 +15,11 @@ import { IUserJWT } from 'src/model/user.modal';
 import { ProductService } from '../product/product.service';
 import { UserService } from '../user/user.service';
 import { CreateCartRequestDto, UpdateCartRequestDto } from './dto/request.dto';
-import { Cart, CartDocument } from './dto/schema.dto';
 
 @Injectable()
 export class CartService {
   constructor(
-    @InjectModel(Cart.name)
-    private cartModel: Model<CartDocument>,
+    private prisma: PrismaService,
     private userService: UserService,
     private productService: ProductService,
   ) {}
@@ -52,30 +50,32 @@ export class CartService {
         Errors.ITEM_NOT_FOUND('idProduct is not found'),
       );
 
-    const productInCartExists = await this.cartModel.find({
-      idUser: idUser,
-      idProduct: idProduct,
-      isActive: true,
+    const productInCartExists = await this.prisma.cart.findFirst({
+      where: {
+        idUser: idUser,
+        idProduct: idProduct,
+        isActive: true,
+      },
     });
 
-    if (productInCartExists.length > 0)
+    if (productInCartExists)
       throw new ConflictException(
         Errors.CONFLICT('Sản phẩm đã tồn tại trong giỏ hàng'),
       );
 
-    const payload = {
+    const data = {
       idUser,
       idProduct,
       quantity,
     };
 
-    const cart = await this.cartModel.create(payload);
+    const cart = await this.prisma.cart.create({ data });
 
     return HTTP_RESPONSE.OK('en', cart);
   }
 
   async delete(id: string): Promise<IResponse<ICart | null>> {
-    const cart = await this.cartModel.findByIdAndDelete(id);
+    const cart = await this.prisma.cart.delete({ where: { id } });
     if (!cart)
       throw new NotFoundException(Errors.ITEM_NOT_FOUND('Cart is not found'));
 
@@ -83,7 +83,16 @@ export class CartService {
   }
 
   async patchMany(ids: string[], body?: Partial<ICart>) {
-    return this.cartModel.updateMany({ _id: { $in: ids } }, { $set: body });
+    return this.prisma.cart.updateMany({
+      where: {
+        id: {
+          in: ids,
+        },
+      },
+      data: {
+        ...body,
+      },
+    });
   }
 
   async patch(
@@ -118,8 +127,9 @@ export class CartService {
         Errors.ITEM_NOT_FOUND('idProduct is not found'),
       );
 
-    const cart = await this.cartModel.findByIdAndUpdate(idCart, body, {
-      new: true,
+    const cart = await this.prisma.cart.update({
+      where: { id: idCart },
+      data: { ...body },
     });
 
     if (!cart)
@@ -144,27 +154,26 @@ export class CartService {
       throw new NotFoundException(Errors.ITEM_NOT_FOUND('User is not found'));
 
     const [items, total] = await Promise.all([
-      this.cartModel
-        .find({ idUser: idUser, isActive: true })
-        .populate('idProduct')
-        .skip(skip)
-        .limit(pageSize)
-        .sort({ createAt: -1 })
-        .lean(),
-      this.cartModel.countDocuments({ idUser: idUser, isActive: true }),
-    ]);
+      this.prisma.cart.findMany({
+        where: { idUser: idUser, isActive: true },
+        include: { product: true },
+        skip,
+        orderBy: [
+          {
+            createdAt: 'desc',
+          },
+        ],
+      }),
 
-    const products = items.map(({ idProduct, ...rest }) => ({
-      ...rest,
-      product: idProduct,
-    }));
+      this.prisma.cart.count({ where: { idUser: idUser, isActive: true } }),
+    ]);
 
     const totalPage = Math.ceil(total / pageSize);
     const nextPage = page < totalPage;
     const previousPage = page > 1;
 
     return HTTP_RESPONSE.OK('en', {
-      items: products,
+      items,
       pagination: {
         page,
         pageSize,
@@ -177,6 +186,6 @@ export class CartService {
   }
 
   async findById(id: string) {
-    return this.cartModel.findById(id);
+    return this.prisma.cart.findUnique({ where: { id } });
   }
 }

@@ -4,10 +4,130 @@
 // Get a free hosted Postgres database in seconds: `npx create-db`
 
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mongodb" // hoặc postgresql/mysql
+  url      = env("DATABASE_URL")
+}
+
+enum Provider {
+  normal
+  google
+  facebook
+}
+
+enum CATEGORY_PRODUCT {
+  MAIN_COURES
+  DESSERT
+  APPETIZER
+}
+
+enum METHOD_PAYMENT {
+  COD
+  VNPAY
+}
+
+model User {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  avatar    String    @default("https //i.pinimg.com/236x/ee/68/14/ee681444f9d95896412897b799efc41b.jpg")
+  username  String
+  email     String    @unique
+  password  String?
+  provider  Provider
+  isActive  Boolean   @default(true)
+  addresses Address[]
+  carts     Cart[]
+  orders    Order[]
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @updatedAt
+
+  @@map("users")
+}
+
+model Product {
+  id          String           @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  price       Int
+  discount    Int
+  description String
+  image       String
+  category    CATEGORY_PRODUCT
+  rates       Json             @default("{\"star1\":0,\"star2\":0,\"star3\":0,\"star4\":0,\"star5\":0}")
+  total_star  Int              @default(0)
+  isActive    Boolean          @default(true)
+  createdAt   DateTime?        @default(now())
+  updatedAt   DateTime?        @updatedAt
+  carts       Cart[]
+
+  @@map("products")
+}
+
+model Address {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  idUser        String    @db.ObjectId
+  nameAddress   String
+  phone         String
+  addressDetail String
+  district      String
+  city          String
+  isDefault     Boolean   @default(true)
+  isActive      Boolean   @default(true)
+  createdAt     DateTime? @default(now())
+  updatedAt     DateTime? @updatedAt
+  user          User      @relation(fields: [idUser], references: [id])
+
+  @@map("addresses")
+}
+
+model Cart {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  idUser    String    @db.ObjectId
+  idProduct String    @db.ObjectId
+  quantity  Int
+  isActive  Boolean   @default(true)
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @updatedAt
+  user      User      @relation(fields: [idUser], references: [id])
+  product   Product   @relation(fields: [idProduct], references: [id])
+
+  @@map("carts")
+}
+
+model Order {
+  id             String         @id @default(auto()) @map("_id") @db.ObjectId
+  idUser         String         @db.ObjectId
+  user           Json
+  cartItems      Json[]
+  address        Json
+  total          Int
+  paymentMethods METHOD_PAYMENT
+  createdAt      DateTime?      @default(now())
+  updatedAt      DateTime?      @updatedAt
+  userInfo       User           @relation(fields: [idUser], references: [id])
+
+  @@map("orders")
+}
+
+model Chat {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  member    String[]  @db.ObjectId
+  isActive  Boolean   @default(true)
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @updatedAt
+  messages  Message[]
+
+  @@map("chats")
+}
+
+model Message {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  roomId    String    @db.ObjectId
+  isActive  Boolean   @default(true)
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @updatedAt
+  chat      Chat      @relation(fields: [roomId], references: [id])
+
+  @@map("messages")
 }

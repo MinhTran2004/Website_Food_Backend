@@ -30,5 +30,5 @@ export class CreateAddressRequestDto {
 export class UpdateAddressRequestDto extends CreateAddressRequestDto {
   @ApiProperty({ required: true, type: String })
   @IsNotEmpty()
-  _id: string;
+  id: string;
 }

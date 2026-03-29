@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable prettier/prettier */
 import {
   BadRequestException,
   ConflictException,
@@ -8,42 +5,45 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { InjectModel } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
-import { Model } from 'mongoose';
-import { HTTP_RESPONSE } from 'src/constants/api.constant';
-import { IResponse, IResponseListData } from 'src/model/api.model';
-import { BaseException, Errors } from 'src/model/error';
-import { IResponseAuth, IUser, IUserJWT } from 'src/model/user.modal';
+
+import { Provider } from '@prisma/client';
+import { PrismaService } from '../../../prisma/prisma.service';
+import { HTTP_RESPONSE } from '../../constants/api.constant';
+import { IResponse, IResponseListData } from '../../model/api.model';
+import { BaseException, Errors } from '../../model/error';
+import { IResponseAuth, IUser, IUserJWT } from '../../model/user.modal';
 import { LoginRequestDto, RegisterRequestDto } from './dto/request.dto';
-import { User, UserDocument } from './dto/schema.dto';
 
 @Injectable()
 export class UserService {
   constructor(
-    @InjectModel(User.name)
-    private userModel: Model<UserDocument>,
+    private prisma: PrismaService,
     private jwtService: JwtService,
   ) {}
 
-  async create(data: RegisterRequestDto): Promise<IResponse<IUser | null>> {
-    const { password, ...account } = data;
+  async create(body: RegisterRequestDto): Promise<IResponse<IUser | null>> {
+    const { password, ...account } = body;
 
     if (password.length < 6)
       throw new BaseException(
         Errors.BAD_REQUEST('Minimum password length is 6.'),
       );
 
-    const existed = await this.userModel.findOne({ email: account.email });
+    const existed = await this.prisma.user.findUnique({
+      where: { email: account.email },
+    });
 
     if (existed)
       throw new ConflictException(Errors.BAD_REQUEST('Email already exists'));
 
     const passwordHash = (await bcrypt.hash(password, 10)) as string;
 
-    const userCreate = await this.userModel.create({
-      ...data,
-      password: passwordHash,
+    const userCreate = await this.prisma.user.create({
+      data: {
+        ...body,
+        password: passwordHash,
+      },
     });
 
     if (!userCreate) throw new BadRequestException('Create new user failure');
@@ -51,81 +51,53 @@ export class UserService {
     return HTTP_RESPONSE.CREATED('en', userCreate);
   }
 
+  async createUserProvider(body: {
+    email: string;
+    username: string;
+    avatar: string;
+    provider: Provider;
+  }): Promise<IResponse<IUser | null>> {
+    const user = await this.prisma.user.create({
+      data: { password: '', ...body },
+    });
+
+    if (!user)
+      throw new BadRequestException(
+        Errors.BAD_REQUEST('Create new user failure'),
+      );
+
+    return HTTP_RESPONSE.CREATED('en', user);
+  }
+
   async get(user: IUserJWT): Promise<IResponse<IUser | null>> {
     const { idUser } = user;
     if (!idUser)
       throw new BadRequestException(Errors.BAD_REQUEST('IdUser is required'));
 
-    const userExists = await this.userModel.findById(idUser);
+    const userExists = await this.prisma.user.findUnique({
+      where: { id: idUser },
+    });
 
     return HTTP_RESPONSE.OK('en', userExists);
   }
 
   async findByEmailForAuth(email: string) {
-    return this.userModel.findOne({ email }).select('+password');
+    return this.prisma.user.findUnique({ where: { email } });
   }
 
   async existsByEmail(email: string) {
-    return this.userModel.exists({ email });
+    return this.prisma.user.findUnique({ where: { email } });
   }
 
   async findById(id: string) {
-    return this.userModel.findById(id);
-  }
-
-  async createUserProvider(body: {
-    email: string;
-    username: string;
-    avatar: string;
-    provider: string;
-  }): Promise<IResponse<IUser | null>> {
-    const user = await this.userModel.create(body);
-
-    if (!user)
-      throw new BadRequestException(
-        Errors.BAD_REQUEST('Create new user failure'),
-      );
-
-    return HTTP_RESPONSE.CREATED('en', user);
-  }
-
-  async createUserGoogle(body: {
-    email: string;
-    username: string;
-    avatar: string;
-    provider: string;
-  }): Promise<IResponse<IUser | null>> {
-    const user = await this.userModel.create(body);
-
-    if (!user)
-      throw new BadRequestException(
-        Errors.BAD_REQUEST('Create new user failure'),
-      );
-
-    return HTTP_RESPONSE.CREATED('en', user);
-  }
-
-  async createUserFacebook(body: {
-    email: string;
-    username: string;
-    avatar: string;
-    provider: string;
-  }): Promise<IResponse<IUser | null>> {
-    const user = await this.userModel.create(body);
-
-    if (!user)
-      throw new BadRequestException(
-        Errors.BAD_REQUEST('Create new user failure'),
-      );
-
-    return HTTP_RESPONSE.CREATED('en', user);
+    return this.prisma.user.findUnique({ where: { id } });
   }
 
   async login(data: LoginRequestDto): Promise<IResponseAuth> {
     const { email, password } = data;
 
     // 1. Tìm user
-    const user = await this.userModel.findOne({ email });
+    const user = await this.prisma.user.findUnique({ where: { email } });
 
     if (!user) {
       throw new UnauthorizedException(
@@ -144,7 +116,7 @@ export class UserService {
 
     // 3. Tạo JWT
     const payload = {
-      sub: user._id,
+      sub: user.id,
       email: user.email,
     };
 
@@ -154,7 +126,7 @@ export class UserService {
     return HTTP_RESPONSE.OK('en', {
       accessToken: accessToken,
       user: {
-        id: user._id.toString(),
+        id: user.id,
         email: user.email,
         username: user.username,
       },
@@ -168,9 +140,16 @@ export class UserService {
     if (!userName)
       throw new ConflictException(Errors.CONFLICT('userName is required'));
 
-    const users = await this.userModel.find({
-      username: { $regex: `^${userName}`, $options: 'i' },
-      _id: { $ne: user.idUser },
+    const users = await this.prisma.user.findMany({
+      where: {
+        username: {
+          startsWith: userName, // giống ^regex
+          mode: 'insensitive', // không phân biệt hoa thường
+        },
+        id: {
+          not: user.idUser, // loại trừ chính mình
+        },
+      },
     });
 
     return HTTP_RESPONSE.OK('en', {
