@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsNumber } from 'class-validator';
-import { STAR } from 'src/model/product-rate.modal';
+import { STAR } from '../../../model/product-rate.modal';
 
 export class ProductRateRequestDto {
   @ApiProperty()

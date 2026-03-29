@@ -1,24 +1,18 @@
-/* eslint-disable prettier/prettier */
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { HTTP_RESPONSE } from 'src/constants/api.constant';
+import { HTTP_RESPONSE } from '../../constants/api.constant';
 import {
   IBaseResponse,
   IResponse,
   IResponseListData,
-} from 'src/model/api.model';
-import { Errors } from 'src/model/error';
-import { IProduct } from 'src/model/product.model';
+} from '../../model/api.model';
+import { Errors } from '../../model/error';
+import { IProduct } from '../../model/product.model';
 import { CreateProductRequestDto, FilterProductDto } from './dto/request.dto';
-import { Product, ProductDocument } from './dto/schema.dto';
+import { PrismaService } from 'prisma/prisma.service';
 
 @Injectable()
 export class ProductService {
-  constructor(
-    @InjectModel(Product.name)
-    private productModel: Model<ProductDocument>,
-  ) {}
+  constructor(private prisma: PrismaService) {}
 
   async create(
     data: CreateProductRequestDto,
@@ -32,13 +26,15 @@ export class ProductService {
         ),
       );
 
-    const nameExisted = await this.productModel.findOne({ name: name });
+    const nameExisted = await this.prisma.product.findFirst({
+      where: { name },
+    });
 
     if (nameExisted) {
       return HTTP_RESPONSE.CONFLICT('en');
     }
 
-    const product = await this.productModel.create(data);
+    const product = await this.prisma.product.create({ data });
     return HTTP_RESPONSE.CREATED('en', product);
   }
 
@@ -55,23 +51,28 @@ export class ProductService {
     };
 
     if (options.price === 'MIN') {
-      filter.price = { $lte: 50000 };
+      filter.price = { lte: 50000 };
     } else if (options.price === 'MEDIUM') {
-      filter.price = { $gt: 50000, $lte: 150000 };
+      filter.price = { gt: 50000, lte: 150000 };
     } else if (options.price === 'MAX') {
-      filter.price = { $gt: 150000 };
+      filter.price = { gt: 150000 };
     }
-    
-    const [items, total] = await Promise.all([
-      this.productModel
-        .find(filter)
-        .skip(skip)
-        .limit(pageSize)
-        .sort({ createAt: -1 })
-        .lean(),
-      this.productModel.countDocuments(filter),
-    ]);
 
+    const [items, total] = await Promise.all([
+      this.prisma.product.findMany({
+        where: { ...filter },
+        skip,
+        take: pageSize,
+        orderBy: [
+          {
+            createdAt: 'desc',
+          },
+        ],
+      }),
+      this.prisma.product.count({
+        where: { ...filter },
+      }),
+    ]);
     const totalPage = Math.ceil(total / pageSize);
     const nextPage = page < totalPage;
     const previousPage = page > 1;
@@ -90,7 +91,7 @@ export class ProductService {
   }
 
   async delete(id: string): Promise<IBaseResponse> {
-    const productDeleted = await this.productModel.findByIdAndDelete(id);
+    const productDeleted = await this.prisma.product.delete({ where: { id } });
 
     if (!productDeleted) {
       return HTTP_RESPONSE.NOT_FOUND('en');
@@ -103,18 +104,23 @@ export class ProductService {
     id: string,
     body: CreateProductRequestDto,
   ): Promise<IResponse<IProduct | null>> {
-    const productExists = await this.productModel.findById(id);
+    const productExists = await this.prisma.product.findUnique({
+      where: { id },
+    });
     if (!productExists) {
       return HTTP_RESPONSE.NOT_FOUND('en');
     }
 
-    const productUpdate = await this.productModel.findByIdAndUpdate(id, body, {
-      new: true,
+    const productUpdate = await this.prisma.product.update({
+      where: { id },
+      data: {
+        ...body,
+      },
     });
     return HTTP_RESPONSE.OK('en', productUpdate);
   }
 
-  async findById(productId: string) {
-    return this.productModel.findById(productId);
+  async findById(id: string) {
+    return this.prisma.product.findUnique({ where: { id } });
   }
 }

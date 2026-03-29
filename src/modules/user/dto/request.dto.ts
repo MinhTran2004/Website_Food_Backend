@@ -1,7 +1,7 @@
 /* eslint-disable prettier/prettier */
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsNotEmpty, IsString, MinLength } from 'class-validator';
-import { PROVIDER } from 'src/model/user.modal';
+import { Provider } from '@prisma/client';
+import { IsEmail, IsEnum, IsNotEmpty, MinLength } from 'class-validator';
 export class RegisterRequestDto {
     @ApiProperty({ type: String })
     @IsNotEmpty()
@@ -17,10 +17,10 @@ export class RegisterRequestDto {
     @MinLength(6)
     password: string;
 
-    @ApiProperty({ example: 'NORMAL', enum: PROVIDER })
+    @ApiProperty({ example: 'NORMAL', enum: Provider })
     @IsNotEmpty()
-    @IsString()
-    provider: string;
+    @IsEnum(Provider)
+    provider: Provider;
 }
 
 export class LoginRequestDto {
@@ -43,9 +43,9 @@ export class LoginGoogleRequestDto {
     @IsNotEmpty()
     accessToken: string;
 
-    @ApiProperty({ required: true, enum: PROVIDER })
+    @ApiProperty({ required: true, enum: Provider })
     @IsNotEmpty()
-    provider: string
+    provider: Provider
 }
 
 export class LoginFacebookRequestDto {
@@ -53,7 +53,7 @@ export class LoginFacebookRequestDto {
     @IsNotEmpty()
     accessToken: string;
 
-    @ApiProperty({ required: true, enum: PROVIDER })
+    @ApiProperty({ required: true, enum: Provider })
     @IsNotEmpty()
-    provider: string
+    provider: Provider
 }

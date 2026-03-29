@@ -1,10 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/require-await */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable prettier/prettier */
 import {
   BadRequestException,
   Injectable,
@@ -96,31 +89,36 @@ export class AuthService {
 
     // if not account
     if (!emailExisted) {
-      const res = await this.userService.createUserGoogle({
+      const res = await this.userService.createUserProvider({
         username: name,
         email: email,
         avatar: picture,
         provider: provider,
       });
       if (!res.data)
-        throw new BadRequestException(Errors.ITEM_NOT_FOUND('The user does not exist.'));
+        throw new BadRequestException(
+          Errors.ITEM_NOT_FOUND('The user does not exist.'),
+        );
+      console.log('res.data', res.data);
 
-        return HTTP_RESPONSE.OK('en', {
-          accessToken: await this.jwtService.signAsync(res.data),
-          user: res.data,
-        });
+      return HTTP_RESPONSE.OK('en', {
+        accessToken: await this.jwtService.signAsync(res.data),
+        user: res.data,
+      });
     }
 
     // if have a account
-    const user = await this.userService.findById(emailExisted._id.toString());
+    const user = await this.userService.findById(emailExisted.id);
 
     if (!user)
-      throw new BadRequestException(Errors.ITEM_NOT_FOUND('The user does not exist.'));
+      throw new BadRequestException(
+        Errors.ITEM_NOT_FOUND('The user does not exist.'),
+      );
 
-      return HTTP_RESPONSE.OK('en', {
-        accessToken: await this.jwtService.signAsync(user),
-        user: user,
-      });
+    return HTTP_RESPONSE.OK('en', {
+      accessToken: await this.jwtService.signAsync(user),
+      user: user,
+    });
   }
 
   async loginFacebook(
@@ -149,25 +147,29 @@ export class AuthService {
 
     // // if not account
     if (!emailExisted) {
-      const res = await this.userService.createUserFacebook({
+      const res = await this.userService.createUserProvider({
         username: name,
         email: email,
         avatar: picture.data.url,
         provider: provider,
       });
       if (!res.data)
-        throw new BadRequestException(Errors.ITEM_NOT_FOUND('The user does not exist.'));
+        throw new BadRequestException(
+          Errors.ITEM_NOT_FOUND('The user does not exist.'),
+        );
 
-        return HTTP_RESPONSE.OK('en', {
-          accessToken: await this.jwtService.signAsync(res.data),
-          user: res.data,
-        });
+      return HTTP_RESPONSE.OK('en', {
+        accessToken: await this.jwtService.signAsync(res.data),
+        user: res.data,
+      });
     }
 
     // // if have a account
-    const user = await this.userService.findById(emailExisted._id.toString());
+    const user = await this.userService.findById(emailExisted.id);
     if (!user)
-      throw new BadRequestException(Errors.ITEM_NOT_FOUND('The user does not exist.'));
+      throw new BadRequestException(
+        Errors.ITEM_NOT_FOUND('The user does not exist.'),
+      );
 
     return HTTP_RESPONSE.OK('en', {
       accessToken: await this.jwtService.signAsync(user),

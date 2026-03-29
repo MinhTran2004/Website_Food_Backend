@@ -5,6 +5,7 @@ import { UserModule } from '../user/user.module';
 import { ProductRate, ProductRateSchema } from './dto/schema.dto';
 import { ProductRateController } from './product-rate.controller';
 import { ProductRateService } from './product-rate.service';
+import { PrismaService } from 'prisma/prisma.service';
 
 @Module({
   imports: [
@@ -14,7 +15,7 @@ import { ProductRateService } from './product-rate.service';
     ProductModule,
     UserModule,
   ],
-  providers: [ProductRateService],
+  providers: [ProductRateService, PrismaService],
   controllers: [ProductRateController],
 })
 export class ProductRateModule {}

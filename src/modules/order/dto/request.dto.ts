@@ -3,12 +3,12 @@ import { IsArray } from 'class-validator';
 import type { IAddress } from 'src/model/address.module';
 import { IOrderProduct, METHOD_PAYMENT } from 'src/model/order.model';
 import { UpdateAddressRequestDto } from 'src/modules/address/dto/request.dto';
-import { CartProductRequestDto } from 'src/modules/cart/dto/request.dto';
+import { CartItem } from 'src/modules/cart/dto/request.dto';
 
 export class CreateOrderRequestDto {
-  @ApiProperty({ required: true, type: [CartProductRequestDto] })
+  @ApiProperty({ required: true, type: [CartItem] })
   @IsArray()
-  cartProducts: CartProductRequestDto[];
+  cartItems: CartItem[];
 
   @ApiProperty({ required: true, type: UpdateAddressRequestDto })
   address: IAddress;

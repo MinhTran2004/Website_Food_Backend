@@ -9,6 +9,7 @@ import { MessageController } from './mesage.controller';
 import { MessageService } from './mesage.service';
 import { AuthModule } from '../auth/auth.module';
 import { ChatListener } from './chat.listener';
+import { PrismaService } from 'prisma/prisma.service';
 
 @Module({
   imports: [
@@ -21,7 +22,7 @@ import { ChatListener } from './chat.listener';
     ]),
   ],
   controllers: [MessageController],
-  providers: [MessageService, ChatGateway, ChatListener],
+  providers: [MessageService, ChatGateway, ChatListener, PrismaService],
   exports: [MessageService],
 })
 export class MessageModule {}

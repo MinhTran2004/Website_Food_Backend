@@ -11,8 +11,8 @@ export class ChatListener {
   @OnEvent('chat.message')
   handleMessage(payload: { room: IRoom; message: IMessage }) {
     const { message, room } = payload;
-    this.gateway.server.to(room._id?.toString()).emit('newMessage', message);
-    this.gateway.server.to(room._id?.toString()).emit('reloadRooms', room);
+    this.gateway.server.to(room._id?.toString() as string).emit('newMessage', message);
+    this.gateway.server.to(room._id?.toString() as string).emit('reloadRooms', room);
   }
 
   @OnEvent('chat.reloadRooms')
