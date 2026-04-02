@@ -22,6 +22,7 @@ const error_1 = require("../../model/error");
 const user_service_1 = require("../user/user.service");
 const schema_dto_1 = require("./dto/schema.dto");
 const event_emitter_1 = require("@nestjs/event-emitter");
+const socket_constant_1 = require("../../constants/socket.constant");
 let MessageService = class MessageService {
     chatModel;
     messageModel;
@@ -54,7 +55,7 @@ let MessageService = class MessageService {
                 room: roomChat,
                 message: newMessage,
             };
-            this.eventEmitter.emit('chat.message', payload);
+            this.eventEmitter.emit(socket_constant_1.OnEvents.CHAT_MESSAGE, payload);
             return newMessage;
         }
         else {
@@ -72,7 +73,7 @@ let MessageService = class MessageService {
                 room: newRoom,
                 message: newMessage,
             };
-            this.eventEmitter.emit('chat.reloadRooms', payload);
+            this.eventEmitter.emit(socket_constant_1.OnEvents.ROOM_JOIN_FRIST_CHAT, payload);
             return newMessage;
         }
     }

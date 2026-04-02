@@ -13,6 +13,7 @@ exports.ChatListener = void 0;
 const common_1 = require("@nestjs/common");
 const chat_gateway_1 = require("./chat.gateway");
 const event_emitter_1 = require("@nestjs/event-emitter");
+const socket_constant_1 = require("../../constants/socket.constant");
 let ChatListener = class ChatListener {
     gateway;
     constructor(gateway) {
@@ -20,26 +21,38 @@ let ChatListener = class ChatListener {
     }
     handleMessage(payload) {
         const { message, room } = payload;
-        this.gateway.server.to(room._id?.toString()).emit('newMessage', message);
-        this.gateway.server.to(room._id?.toString()).emit('reloadRooms', room);
+        this.gateway.server
+            .to(room._id?.toString())
+            .emit('chat:new', message);
+        this.gateway.server
+            .to(room._id?.toString())
+            .emit('room:joinFristChat', room);
     }
     reloadRooms(payload) {
         const { room, message, receiverId, senderId } = payload;
-        this.gateway.server.to(senderId).emit('reloadRooms', room);
-        this.gateway.server.to(receiverId).emit('reloadRooms', room);
-        this.gateway.server.to(senderId).emit('newMessage', message);
-        this.gateway.server.to(receiverId).emit('newMessage', message);
+        this.gateway.server
+            .to(senderId)
+            .emit(socket_constant_1.SocketClientEvents.ROOM_JOIN_FRIST_CHAT, room);
+        this.gateway.server
+            .to(receiverId)
+            .emit(socket_constant_1.SocketClientEvents.ROOM_JOIN_FRIST_CHAT, room);
+        this.gateway.server
+            .to(senderId)
+            .emit(socket_constant_1.SocketClientEvents.NEW_MESSAGE, message);
+        this.gateway.server
+            .to(receiverId)
+            .emit(socket_constant_1.SocketClientEvents.NEW_MESSAGE, message);
     }
 };
 exports.ChatListener = ChatListener;
 __decorate([
-    (0, event_emitter_1.OnEvent)('chat.message'),
+    (0, event_emitter_1.OnEvent)(socket_constant_1.OnEvents.CHAT_MESSAGE),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], ChatListener.prototype, "handleMessage", null);
 __decorate([
-    (0, event_emitter_1.OnEvent)('chat.reloadRooms'),
+    (0, event_emitter_1.OnEvent)(socket_constant_1.OnEvents.ROOM_JOIN_FRIST_CHAT),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)

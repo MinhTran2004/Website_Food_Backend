@@ -8,6 +8,7 @@ import {
 
 import { Server, Socket } from 'socket.io';
 import { MessageService } from './mesage.service';
+import { EventSubscribeMessages } from 'src/constants/socket.constant';
 
 @WebSocketGateway({
   cors: {
@@ -18,7 +19,7 @@ export class ChatGateway {
   @WebSocketServer()
   server: Server;
   constructor(private messageService: MessageService) {}
-  @SubscribeMessage('sendMessage')
+  @SubscribeMessage(EventSubscribeMessages.CHAT_SEND)
   async handleMessage(
     @MessageBody() data: any,
     @ConnectedSocket() client: Socket,
@@ -27,7 +28,7 @@ export class ChatGateway {
     await this.messageService.create(data, accessToken);
   }
 
-  @SubscribeMessage('joinRoom')
+  @SubscribeMessage(EventSubscribeMessages.ROOM_JOIN)
   async handleJoinRoom(
     @MessageBody() roomId: string,
     @ConnectedSocket() client: Socket,

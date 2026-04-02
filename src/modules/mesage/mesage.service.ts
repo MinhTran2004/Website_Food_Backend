@@ -15,6 +15,7 @@ import { UserService } from '../user/user.service';
 import { CreateChatRoomRequestDto } from './dto/request.dto';
 import { Chat, ChatDocument, Message, MessageDocument } from './dto/schema.dto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { OnEvents } from 'src/constants/socket.constant';
 
 @Injectable()
 export class MessageService {
@@ -40,7 +41,7 @@ export class MessageService {
     const roomChat = await this.chatModel.findOne({
       members: { $all: [id, receiverId] },
     });
-    
+
     if (roomChat) {
       const payloadNewMessage = {
         roomId: roomChat._id,
@@ -52,7 +53,7 @@ export class MessageService {
         room: roomChat,
         message: newMessage,
       };
-      this.eventEmitter.emit('chat.message', payload);
+      this.eventEmitter.emit(OnEvents.CHAT_MESSAGE, payload);
 
       return newMessage;
     } else {
@@ -74,7 +75,7 @@ export class MessageService {
         message: newMessage,
       };
 
-      this.eventEmitter.emit('chat.reloadRooms', payload);
+      this.eventEmitter.emit(OnEvents.ROOM_JOIN_FRIST_CHAT, payload);
 
       return newMessage;
     }
